@@ -1,0 +1,8 @@
+{
+  "name": "qc-kit",
+  "version": "0.1.0",
+  "description": "주간 품질 보고 집계·감사·문장 작성 에이전트, weekly-ship 스킬, data/ 원본 보호 훅",
+  "author": {
+    "name": "weekly-qc"
+  }
+}

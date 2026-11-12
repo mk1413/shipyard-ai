@@ -1,0 +1,17 @@
+{
+  "name": "weekly-qc",
+  "owner": {
+    "name": "weekly-qc"
+  },
+  "metadata": {
+    "description": "주간 품질 보고 집계·감사 플러그인 마켓플레이스"
+  },
+  "plugins": [
+    {
+      "name": "qc-kit",
+      "source": "./plugins/qc-kit",
+      "description": "주간 품질 보고 집계·감사·문장 작성 에이전트, weekly-ship 스킬, data/ 원본 보호 훅",
+      "version": "0.1.0"
+    }
+  ]
+}
