@@ -10,9 +10,10 @@ const { requireLogin } = require('./middleware/require-login');
 /**
  * Express 앱을 만든다. DB 연결은 호출하는 쪽이 한다 (테스트에서는 임시 DB를 넘긴다).
  * 비밀키가 없으면 앱을 만들지 않는다 (SESSION_SECRET, USER_HASH_KEY 필수).
- * @param {{db: import('@libsql/client').Client, auth: {hashKey: string, sessionSecret: string, sessionHours: number}}} deps
+ * @param {{db: import('@libsql/client').Client, auth: {hashKey: string, sessionSecret: string, sessionHours: number}, rootRedirect?: boolean}} deps
+ *   rootRedirect가 true이면 메인(/)을 대시보드 대신 /search로 보낸다 (배포 임시 설정).
  */
-function createApp({ db, auth }) {
+function createApp({ db, auth, rootRedirect = false }) {
   if (!auth || !auth.hashKey) throw new Error('USER_HASH_KEY 환경 변수가 필요합니다');
   if (!auth.sessionSecret) throw new Error('SESSION_SECRET 환경 변수가 필요합니다');
 
@@ -33,7 +34,13 @@ function createApp({ db, auth }) {
   if (!auth.disableLogin) {
     app.use(requireLogin(auth.sessionSecret));
   }
-  app.use(dashboardRouter(db));
+  if (rootRedirect) {
+    // 임시: 배포 환경에서 메인 대시보드(/)가 500이므로 검색 화면으로 보낸다.
+    // 원인을 고치면 rootRedirect 설정을 끄면 대시보드가 다시 열린다.
+    app.get('/', (req, res) => res.redirect('/search'));
+  } else {
+    app.use(dashboardRouter(db));
+  }
   app.use(searchRouter(db));
   return app;
 }

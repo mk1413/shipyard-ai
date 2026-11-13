@@ -43,7 +43,7 @@ async function init() {
     console.log('CSV 데이터를 적재했습니다.');
   }
   console.log(`DB 준비 완료 (스키마 버전 ${await currentVersion(db)})`);
-  return createApp({ db, auth });
+  return createApp({ db, auth, rootRedirect: true });
 }
 
 // 초기화는 모듈을 읽을 때 한 번 시작하고, 끝날 때까지 들어온 요청을 기다리게 한다.

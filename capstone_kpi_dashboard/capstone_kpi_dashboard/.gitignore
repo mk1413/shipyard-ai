@@ -11,3 +11,6 @@ backup/
 
 # 의존성 설치 폴더
 node_modules/
+
+# 접속 값 파일 (커밋 제외)
+.env*
