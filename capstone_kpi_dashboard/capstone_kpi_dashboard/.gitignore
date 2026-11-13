@@ -1,0 +1,13 @@
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# 개인정보와 로컬 DB (원칙 3)
+data/users.csv
+data/app.db
+data/app.db-wal
+data/app.db-shm
+backup/
+
+# 의존성 설치 폴더
+node_modules/

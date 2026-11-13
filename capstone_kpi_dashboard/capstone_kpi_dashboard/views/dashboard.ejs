@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>조선소 생산 KPI 대시보드</title>
+  <style>
+    :root {
+      --bg: #f8fafc; --fg: #0f172a; --muted: #64748b; --card: #ffffff; --line: #e2e8f0;
+      --warn-bg: #fef3c7; --warn-fg: #92400e; --crit-bg: #fee2e2; --crit-fg: #991b1b;
+      --ok-bg: #dcfce7; --ok-fg: #166534; --info-bg: #e0f2fe; --info-fg: #075985;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f172a; --fg: #e2e8f0; --muted: #94a3b8; --card: #1e293b; --line: #334155;
+        --warn-bg: #451a03; --warn-fg: #fde68a; --crit-bg: #450a0a; --crit-fg: #fecaca;
+        --ok-bg: #052e16; --ok-fg: #bbf7d0; --info-bg: #082f49; --info-fg: #bae6fd;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0f172a; --fg: #e2e8f0; --muted: #94a3b8; --card: #1e293b; --line: #334155;
+      --warn-bg: #451a03; --warn-fg: #fde68a; --crit-bg: #450a0a; --crit-fg: #fecaca;
+      --ok-bg: #052e16; --ok-fg: #bbf7d0; --info-bg: #082f49; --info-fg: #bae6fd;
+    }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; }
+    main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+    h1 { font-size: 1.5rem; margin: 8px 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 16px; }
+    form.filters { display: grid; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+    form.filters .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    form.filters label { font-size: 0.9rem; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .kpi-card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+    .kpi-card .label { font-size: 0.9rem; color: var(--muted); }
+    .kpi-card .value { font-size: 1.6rem; font-weight: 700; margin-top: 4px; }
+    .kpi-card .gap { font-size: 0.8rem; color: var(--muted); }
+    .delta { font-size: 0.85rem; color: var(--muted); }
+    .alert { border-radius: 6px; padding: 8px 12px; margin: 6px 0; }
+    .alert-crit { background: var(--crit-bg); color: var(--crit-fg); }
+    .alert-warn { background: var(--warn-bg); color: var(--warn-fg); }
+    .alert-ok { background: var(--ok-bg); color: var(--ok-fg); }
+    .alert-info { background: var(--info-bg); color: var(--info-fg); }
+    table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+    th, td { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; }
+    .scroll { overflow-x: auto; }
+    details { margin-top: 16px; }
+    button { padding: 6px 14px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>🚢 조선소 생산 KPI 대시보드</h1>
+
+  <% if (data.empty) { %>
+    <p class="sub"><%= data.filters.start %> ~ <%= data.filters.end %></p>
+  <% } else { %>
+    <p class="sub"><%= data.filters.start %> ~ <%= data.filters.end %> · 공정 <%= data.filters.processes.length %>개 · 호선 <%= data.filters.ships.length %>척</p>
+  <% } %>
+
+  <form class="filters" method="get" action="/">
+    <input type="hidden" name="f" value="1">
+    <div class="row">
+      <label>기간
+        <input type="date" name="start" value="<%= data.filters.start %>" min="<%= data.bounds.minDate %>" max="<%= data.bounds.maxDate %>">
+        ~
+        <input type="date" name="end" value="<%= data.filters.end %>" min="<%= data.bounds.minDate %>" max="<%= data.bounds.maxDate %>">
+      </label>
+    </div>
+    <div class="row">
+      <span>공정</span>
+      <% data.bounds.processes.forEach(function (p) { %>
+        <label><input type="checkbox" name="processes" value="<%= p %>" <%= data.filters.processes.includes(p) ? 'checked' : '' %>> <%= p %></label>
+      <% }) %>
+    </div>
+    <div class="row">
+      <span>호선 (블록 현황에 적용)</span>
+      <% data.bounds.ships.forEach(function (s) { %>
+        <label><input type="checkbox" name="ships" value="<%= s %>" <%= data.filters.ships.includes(s) ? 'checked' : '' %>> <%= s %></label>
+      <% }) %>
+    </div>
+    <div class="row"><button type="submit">적용</button></div>
+  </form>
+
+  <% if (data.empty) { %>
+    <div class="alert alert-warn">선택한 조건에 해당하는 데이터가 없습니다.</div>
+  <% } else { %>
+
+    <section class="kpi-grid">
+      <% data.kpis.forEach(function (k) { %>
+        <div class="kpi-card">
+          <div class="label"><%= k.icon %> <%= k.name %></div>
+          <div class="value"><%= k.text %></div>
+          <% if (k.delta) { %><div class="delta"><%= k.delta %> (직전 기간 대비)</div><% } %>
+          <% if (k.gap) { %><div class="gap">목표 <%= k.target %> · 차이 <%= k.gap %></div><% } %>
+        </div>
+      <% }) %>
+    </section>
+
+    <% if (data.allOk) { %>
+      <div class="alert alert-ok">✅ 모든 KPI가 목표를 충족하고 있습니다.</div>
+    <% } else { %>
+      <% data.problems.forEach(function (p) { %>
+        <div class="alert alert-<%= p.level %>"><%= p.message %></div>
+      <% }) %>
+    <% } %>
+
+    <section>
+      <h2>📈 생산실적</h2>
+      <div id="chart-daily"></div>
+      <div id="chart-process"></div>
+    </section>
+    <script src="/vendor/plotly.min.js"></script>
+    <script>
+      (function () {
+        var daily = <%- JSON.stringify(data.charts.daily).replace(/</g, '\\u003c') %>;
+        Plotly.newPlot('chart-daily', daily.data, daily.layout, { responsive: true });
+        var proc = <%- JSON.stringify(data.charts.process).replace(/</g, '\\u003c') %>;
+        Plotly.newPlot('chart-process', proc.data, proc.layout, { responsive: true });
+      })();
+    </script>
+
+    <section>
+      <h2>🔧 설비 OEE</h2>
+      <div class="equip-cards">
+        <div class="equip-card"><div class="label">가동률</div><div class="value"><%= data.equipSummary.avail.toFixed(1) %>%</div></div>
+        <div class="equip-card"><div class="label">성능효율</div><div class="value"><%= data.equipSummary.perf.toFixed(1) %>%</div></div>
+        <div class="equip-card"><div class="label">양품률</div><div class="value"><%= data.equipSummary.qual.toFixed(1) %>%</div></div>
+        <div class="equip-card"><div class="label">OEE</div><div class="value"><%= data.equipSummary.oee.toFixed(1) %>%</div></div>
+      </div>
+      <div id="chart-oee"></div>
+      <div id="chart-downtime"></div>
+    </section>
+    <script>
+      (function () {
+        var oee = <%- JSON.stringify(data.charts.equipment).replace(/</g, '\\u003c') %>;
+        Plotly.newPlot('chart-oee', oee.data, oee.layout, { responsive: true });
+        var downtime = <%- JSON.stringify(data.charts.downtime).replace(/</g, '\\u003c') %>;
+        Plotly.newPlot('chart-downtime', downtime.data, downtime.layout, { responsive: true });
+      })();
+    </script>
+
+    <section>
+      <h2>🧪 품질</h2>
+      <div id="chart-defect"></div>
+      <div id="chart-pareto"></div>
+      <p>총 재작업 시간: <strong><%= data.rework.toLocaleString('ko-KR', { maximumFractionDigits: 1 }) %> 시간</strong></p>
+    </section>
+    <script>
+      (function () {
+        var defect = <%- JSON.stringify(data.charts.defect).replace(/</g, '\\u003c') %>;
+        Plotly.newPlot('chart-defect', defect.data, defect.layout, { responsive: true });
+        var pareto = <%- JSON.stringify(data.charts.pareto).replace(/</g, '\\u003c') %>;
+        Plotly.newPlot('chart-pareto', pareto.data, pareto.layout, { responsive: true });
+      })();
+    </script>
+
+    <% if (data.tabAlerts.length) { %>
+      <h2>탭별 세부 경고</h2>
+      <% data.tabAlerts.forEach(function (a) { %>
+        <div class="alert alert-<%= a.level %>" data-tab="<%= a.tab %>"><%= a.message %></div>
+      <% }) %>
+    <% } %>
+
+    <section data-tab="blocks">
+      <h2>🧱 블록 공정진척</h2>
+      <form class="block-select" method="get" action="/">
+        <input type="hidden" name="f" value="1">
+        <input type="hidden" name="start" value="<%= data.filters.start %>">
+        <input type="hidden" name="end" value="<%= data.filters.end %>">
+        <% data.filters.processes.forEach(function (p) { %><input type="hidden" name="processes" value="<%= p %>"><% }) %>
+        <% data.filters.ships.forEach(function (s) { %><input type="hidden" name="ships" value="<%= s %>"><% }) %>
+        <label>간트 블록
+          <select name="block">
+            <option value="">블록 선택 안 함</option>
+            <% data.blocks.forEach(function (b) { %>
+              <option value="<%= b.key %>"<%= data.selectedBlock && data.selectedBlock.key === b.key ? ' selected' : '' %>><%= b.label %></option>
+            <% }) %>
+          </select>
+        </label>
+        <button type="submit">간트 보기</button>
+      </form>
+      <div id="chart-block-donut"></div>
+      <div id="chart-block-progress"></div>
+      <% if (data.charts.gantt) { %>
+        <div id="chart-gantt"></div>
+      <% } else { %>
+        <p class="sub">블록을 선택하면 간트차트가 표시됩니다.</p>
+      <% } %>
+      <h3>⏰ 지연 블록 TOP 10</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>블록</th><th>선종</th><th>공정</th><th>계획종료</th><th>실적종료</th><th>지연일수</th><th>상태</th></tr></thead>
+          <tbody>
+            <% data.top.forEach(function (r) { %>
+              <tr class="top-row" data-delay="<%= r.delay_days %>">
+                <td><%= r.block_id %></td><td><%= r.ship_type %></td><td><%= r.process %></td>
+                <td><%= r.planned_end %></td><td><%= r.actual_end || '-' %></td>
+                <td><%= r.delay_days %></td><td><%= r.status %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <script>
+      (function () {
+        var donut = <%- JSON.stringify(data.charts.blockDonut).replace(/</g, '\\u003c') %>;
+        Plotly.newPlot('chart-block-donut', donut.data, donut.layout, { responsive: true });
+        var prog = <%- JSON.stringify(data.charts.blockProgress).replace(/</g, '\\u003c') %>;
+        Plotly.newPlot('chart-block-progress', prog.data, prog.layout, { responsive: true });
+        <% if (data.charts.gantt) { %>
+        var gantt = <%- JSON.stringify(data.charts.gantt).replace(/</g, '\\u003c') %>;
+        Plotly.newPlot('chart-gantt', gantt.data, gantt.layout, { responsive: true });
+        <% } %>
+      })();
+    </script>
+
+    <details>
+      <summary>📄 원본 데이터 보기 (<%= data.raw.length %>행)</summary>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>일자</th><th>공정</th><th>계획(ton)</th><th>실적(ton)</th><th>검사</th><th>불량</th><th>재작업(시간)</th></tr>
+          </thead>
+          <tbody>
+            <% data.raw.forEach(function (r) { %>
+              <tr class="raw-row">
+                <td><%= r.date %></td><td><%= r.process %></td>
+                <td><%= r.planned_ton %></td><td><%= r.actual_ton %></td>
+                <td><%= r.inspected_cnt %></td><td><%= r.defect_cnt %></td><td><%= r.rework_hr %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  <% } %>
+</main>
+</body>
+</html>

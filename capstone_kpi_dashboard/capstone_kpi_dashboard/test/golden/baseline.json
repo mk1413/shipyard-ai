@@ -1,0 +1,107 @@
+{
+  "full": {
+    "achieve": 95.5,
+    "oee": 82.8,
+    "defect": 2.32,
+    "mh_eff": 99.3,
+    "delayed_blocks": 18,
+    "defect_over_days": 5,
+    "defect_max": 4.07,
+    "defect_max_date": "09/16",
+    "process_achieve": {
+      "대조립": 93.7,
+      "도장": 96.2,
+      "소조립": 96.5,
+      "절단": 95.8,
+      "중조립": 95.2,
+      "탑재": 95.2
+    },
+    "equipment_oee": {
+      "CR-01": 83.9,
+      "CR-02": 76.5,
+      "CR-03": 83.0,
+      "CT-01": 84.1,
+      "CT-02": 83.7,
+      "PB-01": 83.9,
+      "WR-01": 83.7,
+      "WR-02": 83.7
+    },
+    "status": {
+      "achieve": "ok",
+      "oee": "ok",
+      "defect": "ok",
+      "mh_eff": "ok",
+      "delay": "crit"
+    }
+  },
+  "ac08_1013_1017": {
+    "achieve": 89.1,
+    "oee": 73.9,
+    "defect": 2.05,
+    "mh_eff": 92.3,
+    "delayed_blocks": 18,
+    "defect_over_days": 0,
+    "defect_max": 2.63,
+    "defect_max_date": "10/15",
+    "process_achieve": {
+      "대조립": 60.0,
+      "도장": 93.0,
+      "소조립": 92.8,
+      "절단": 96.0,
+      "중조립": 100.5,
+      "탑재": 89.2
+    },
+    "equipment_oee": {
+      "CR-01": 84.4,
+      "CR-02": 4.1,
+      "CR-03": 86.5,
+      "CT-01": 86.9,
+      "CT-02": 82.5,
+      "PB-01": 83.6,
+      "WR-01": 83.2,
+      "WR-02": 80.4
+    },
+    "status": {
+      "achieve": "crit",
+      "oee": "warn",
+      "defect": "ok",
+      "mh_eff": "warn",
+      "delay": "crit"
+    }
+  },
+  "ac09_0914_0919": {
+    "achieve": 97.2,
+    "oee": 83.5,
+    "defect": 3.17,
+    "mh_eff": 94.0,
+    "delayed_blocks": 18,
+    "defect_over_days": 4,
+    "defect_max": 4.07,
+    "defect_max_date": "09/16",
+    "process_achieve": {
+      "대조립": 97.4,
+      "도장": 97.9,
+      "소조립": 97.0,
+      "절단": 94.4,
+      "중조립": 100.2,
+      "탑재": 97.4
+    },
+    "equipment_oee": {
+      "CR-01": 83.5,
+      "CR-02": 84.0,
+      "CR-03": 84.3,
+      "CT-01": 83.2,
+      "CT-02": 83.8,
+      "PB-01": 83.3,
+      "WR-01": 83.3,
+      "WR-02": 82.8
+    },
+    "status": {
+      "achieve": "ok",
+      "oee": "ok",
+      "defect": "warn",
+      "mh_eff": "warn",
+      "delay": "crit"
+    }
+  }
+}

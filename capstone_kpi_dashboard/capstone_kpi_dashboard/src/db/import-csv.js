@@ -1,0 +1,65 @@
+'use strict';
+
+const fs = require('node:fs');
+const path = require('node:path');
+const { parseCsv } = require('./csv');
+
+// 열 타입: text는 문자열 그대로, int/real은 숫자로 바꾼다. 빈 값은 NULL이다.
+const SPEC = {
+  daily_production: {
+    file: 'daily_production.csv',
+    cols: { date: 'text', process: 'text', planned_ton: 'real', actual_ton: 'real',
+      inspected_cnt: 'int', defect_cnt: 'int', rework_hr: 'real' },
+  },
+  equipment: {
+    file: 'equipment.csv',
+    cols: { date: 'text', equipment_id: 'text', equipment_type: 'text', process: 'text',
+      planned_min: 'int', downtime_min: 'real', ideal_ct_min: 'real', total_cnt: 'int', good_cnt: 'int' },
+  },
+  blocks: {
+    file: 'blocks.csv',
+    cols: { block_id: 'text', ship_no: 'text', ship_type: 'text', process: 'text', weight_ton: 'real',
+      planned_start: 'text', planned_end: 'text', actual_start: 'text', actual_end: 'text',
+      planned_mh: 'real', actual_mh: 'real', progress_pct: 'real' },
+  },
+};
+
+function convert(value, type) {
+  if (value === undefined || value === '') return null;
+  if (type === 'text') return value;
+  const n = Number(value);
+  if (Number.isNaN(n)) throw new Error(`숫자로 읽을 수 없는 값: ${value}`);
+  return type === 'int' ? Math.trunc(n) : n;
+}
+
+/**
+ * CSV 3종을 읽어 테이블을 전부 지운 뒤 다시 넣는다. 한 트랜잭션이라 중간에 실패하면 아무것도 바뀌지 않는다.
+ * @param {import('node:sqlite').DatabaseSync} db
+ * @param {string} dataDir CSV 폴더
+ */
+function importAll(db, dataDir) {
+  const tables = Object.keys(SPEC);
+  const parsed = tables.map((t) => {
+    const text = fs.readFileSync(path.join(dataDir, SPEC[t].file), 'utf8');
+    return { table: t, rows: parseCsv(text), cols: SPEC[t].cols };
+  });
+
+  db.exec('BEGIN');
+  try {
+    for (const { table } of parsed) db.exec(`DELETE FROM ${table};`);
+    for (const { table, rows, cols } of parsed) {
+      const names = Object.keys(cols);
+      const sql = `INSERT INTO ${table} (${names.join(', ')}) VALUES (${names.map(() => '?').join(', ')})`;
+      const stmt = db.prepare(sql);
+      for (const row of rows) {
+        stmt.run(...names.map((n) => convert(row[n], cols[n])));
+      }
+    }
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+}
+
+module.exports = { importAll };

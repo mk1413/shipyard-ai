@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>블록 검색 · 조선소 생산 KPI 대시보드</title>
+  <style>
+    body { margin: 0; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: #f8fafc; color: #0f172a; }
+    main { max-width: 1000px; margin: 0 auto; padding: 16px; }
+    form { display: flex; gap: 8px; margin-bottom: 12px; }
+    input { flex: 1; padding: 8px; font-size: 1rem; }
+    button { padding: 8px 14px; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.9rem; background: #fff; }
+    th, td { border-bottom: 1px solid #e2e8f0; padding: 6px; text-align: left; }
+    .muted { color: #64748b; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>🔍 블록 검색</h1>
+  <form method="get" action="/search">
+    <input name="q" value="<%= q %>" placeholder="블록 ID, 호선 번호, 선종, 공정 (예: 대조립, 2401, 운반선)">
+    <button type="submit">검색</button>
+  </form>
+  <% if (q.trim() === '') { %>
+    <p class="muted">검색어를 입력하세요.</p>
+  <% } else { %>
+    <p class="muted">결과 <%= rows.length %>건 (최대 100건)</p>
+    <table>
+      <thead><tr><th>블록</th><th>호선</th><th>선종</th><th>공정</th><th>상태</th><th>지연일수</th></tr></thead>
+      <tbody>
+        <% rows.forEach(function (r) { %>
+          <tr class="search-row">
+            <td><%= r.block_id %></td><td><%= r.ship_no %></td><td><%= r.ship_type %></td>
+            <td><%= r.process %></td><td><%= r.status %></td><td><%= r.delay_days %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</main>
+</body>
+</html>
