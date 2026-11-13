@@ -36,9 +36,10 @@ async function init() {
   const db = await openDatabase(configFromEnv(path.join(DATA_DIR, 'app.db')));
   await migrateUp(db, MIGRATIONS);
 
-  // 생산 데이터가 비어 있으면 CSV에서 한 번 적재한다
+  // 생산 데이터나 고장 이력이 비어 있으면 CSV에서 다시 적재한다 (고장 이력은 0004에서 추가됨)
   const { n } = await get(db, 'SELECT COUNT(*) AS n FROM daily_production');
-  if (Number(n) === 0) {
+  const { m } = await get(db, 'SELECT COUNT(*) AS m FROM equipment_failures');
+  if (Number(n) === 0 || Number(m) === 0) {
     await importAll(db, DATA_DIR);
     console.log('CSV 데이터를 적재했습니다.');
   }

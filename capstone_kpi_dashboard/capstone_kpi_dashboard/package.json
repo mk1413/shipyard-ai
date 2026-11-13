@@ -11,7 +11,8 @@
     "dev": "node src/server.js",
     "test": "node --test \"test/**/*.test.js\"",
     "seed:users": "node scripts/seed-users.js",
-    "test:py": "python -m pytest tests -q"
+    "test:py": "python -m pytest tests -q",
+    "generate:extra": "node scripts/generate-extra.js"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

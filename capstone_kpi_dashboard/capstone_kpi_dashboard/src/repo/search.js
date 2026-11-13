@@ -17,7 +17,8 @@ async function searchBlocks(db, rawQuery) {
     const match = `"${q.replace(/"/g, '""')}"`;
     rows = await all(
       db,
-      `SELECT b.* FROM blocks_fts f JOIN blocks b ON b.id = f.rowid
+      `SELECT b.*, r.reason AS delay_reason FROM blocks_fts f JOIN blocks b ON b.id = f.rowid
+       LEFT JOIN block_delay_reasons r ON r.block_id = b.block_id AND r.process = b.process
        WHERE blocks_fts MATCH ?
        ORDER BY b.block_id, b.process
        LIMIT ?`,
@@ -28,10 +29,11 @@ async function searchBlocks(db, rawQuery) {
     const like = `%${esc}%`;
     rows = await all(
       db,
-      `SELECT * FROM blocks
-       WHERE block_id LIKE ? ESCAPE '\\' OR ship_no LIKE ? ESCAPE '\\'
-          OR ship_type LIKE ? ESCAPE '\\' OR process LIKE ? ESCAPE '\\'
-       ORDER BY block_id, process
+      `SELECT b.*, r.reason AS delay_reason FROM blocks b
+       LEFT JOIN block_delay_reasons r ON r.block_id = b.block_id AND r.process = b.process
+       WHERE b.block_id LIKE ? ESCAPE '\\' OR b.ship_no LIKE ? ESCAPE '\\'
+          OR b.ship_type LIKE ? ESCAPE '\\' OR b.process LIKE ? ESCAPE '\\'
+       ORDER BY b.block_id, b.process
        LIMIT ?`,
       [like, like, like, like, LIMIT],
     );

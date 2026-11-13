@@ -22,6 +22,15 @@ const SPEC = {
       planned_start: 'text', planned_end: 'text', actual_start: 'text', actual_end: 'text',
       planned_mh: 'real', actual_mh: 'real', progress_pct: 'real' },
   },
+  equipment_failures: {
+    file: 'equipment_failures.csv',
+    cols: { failure_id: 'text', date: 'text', equipment_id: 'text', equipment_type: 'text', process: 'text',
+      duration_min: 'int', cause: 'text' },
+  },
+  block_delay_reasons: {
+    file: 'delay_reasons.csv',
+    cols: { block_id: 'text', process: 'text', reason: 'text', delay_days: 'int' },
+  },
 };
 
 function convert(value, type) {

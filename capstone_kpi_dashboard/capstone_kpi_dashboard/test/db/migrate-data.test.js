@@ -35,7 +35,7 @@ after(async () => {
 
 test('0003을 되돌려도 생산, 설비, 블록 행 수가 그대로다', async () => {
   const before = await counts(db);
-  assert.equal(await currentVersion(db), 3);
+  assert.equal(await currentVersion(db), 4); // 0004까지 적용된 최신 상태
   await migrateDown(db, MIGRATIONS, { to: 2 });
   assert.equal(await currentVersion(db), 2);
   assert.deepEqual(await counts(db), before);
@@ -49,7 +49,7 @@ test('0003을 되돌리면 검색 인덱스 테이블만 사라진다', async ()
 
 test('되돌린 뒤 다시 올리면 검색이 다시 동작한다 (인덱스 재생성)', async () => {
   await migrateUp(db, MIGRATIONS);
-  assert.equal(await currentVersion(db), 3);
+  assert.equal(await currentVersion(db), 4);
   assert.ok((await searchBlocks(db, '대조립')).length > 0);
 });
 

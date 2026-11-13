@@ -227,6 +227,10 @@
 | AC-14 | `generate_data.py`를 두 번 실행하면 CSV 내용이 같다 | 실행 후 파일 해시 비교 |
 | AC-15 | `npm test`는 모든 테스트가 통과하면 종료 코드 0이다 | 명령 실행 |
 | AC-16 | 화면 문구는 한국어이고 외부 URL을 불러오지 않는다 | 원칙 5 점검 명령 |
+| AC-25 | 검색어 없이 `/search`에 들어가면 전체 블록-공정 360건을 페이지당 50건으로 보여 준다 | `test/acceptance/ops-extras.test.js` |
+| AC-26 | 블록 목록에 계획과 실제 착수·종료일이 보인다 | `test/acceptance/ops-extras.test.js` |
+| AC-27 | 지연 블록에는 지연 사유가 표시된다 (사유는 `data/delay_reasons.csv`, 가상 데이터) | `test/acceptance/ops-extras.test.js` |
+| AC-28 | `/failures`에 설비 고장 이력과 설비별 요약이 보인다 (이력은 `data/equipment_failures.csv`, 가상 데이터) | `test/acceptance/ops-extras.test.js` |
 
 ---
 

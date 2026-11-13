@@ -68,10 +68,11 @@ test('AC-23: 2자 질의 "도장"도 결과가 나온다', async () => {
   assert.ok(rows.length > 0, '2자 질의 결과가 있어야 함');
 });
 
-test('AC-24: 빈 질의는 오류 없이 결과가 없다', async () => {
+test('AC-24: 빈 질의는 오류 없이 전체 블록 목록(첫 페이지 50행)을 보여 준다', async () => {
   const { status, html } = await get('/search?q=');
   assert.equal(status, 200);
-  assert.equal((html.match(/class="search-row"/g) || []).length, 0);
+  assert.equal((html.match(/class="search-row"/g) || []).length, 50);
+  assert.match(html, /전체 블록-공정 360건/);
 });
 
 test('AC-24: FTS 특수문자가 들어가도 오류 없이 처리되고 결과는 100건 이하다', async () => {
