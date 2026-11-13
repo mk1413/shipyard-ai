@@ -31,6 +31,7 @@ async function init() {
     hashKey: process.env.USER_HASH_KEY,
     sessionSecret: process.env.SESSION_SECRET,
     sessionHours: Number(process.env.SESSION_HOURS || 8),
+    disableLogin: process.env.DISABLE_LOGIN === 'true',
   };
   const db = await openDatabase(configFromEnv(path.join(DATA_DIR, 'app.db')));
   await migrateUp(db, MIGRATIONS);

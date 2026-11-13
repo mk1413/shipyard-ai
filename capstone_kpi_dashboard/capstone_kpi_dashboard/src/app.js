@@ -28,8 +28,11 @@ function createApp({ db, auth }) {
   // 로그인과 로그아웃은 로그인 없이 열린다
   app.use(authRouter({ db, auth }));
 
-  // 그 아래(대시보드, 검색)는 로그인이 필요하다 (FR-12)
-  app.use(requireLogin(auth.sessionSecret));
+  // 그 아래(대시보드, 검색)는 로그인이 필요하다 (FR-12).
+  // DISABLE_LOGIN=true이면 로그인 확인을 건너뛴다. 가상 데이터 시연용이며, 기본값은 로그인 유지다.
+  if (!auth.disableLogin) {
+    app.use(requireLogin(auth.sessionSecret));
+  }
   app.use(dashboardRouter(db));
   app.use(searchRouter(db));
   return app;
