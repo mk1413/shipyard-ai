@@ -47,7 +47,7 @@ async function get(pathAndQuery) {
 test('AC-25: 검색어 없이 들어가면 전체 블록-공정 360건을 페이지 단위로 보여 준다', async () => {
   const first = await get('/search?q=');
   assert.equal(first.status, 200);
-  assert.match(first.html, /전체 블록-공정 360건/);
+  assert.match(first.html, /전체 블록-공정 <strong>360<\/strong>건/);
   assert.equal((first.html.match(/class="search-row"/g) || []).length, 50);
 
   const last = await get('/search?page=8');
@@ -77,7 +77,7 @@ test('AC-28: 설비 고장 이력 화면에 고장 건수와 설비별 요약이
   const { html, status } = await get('/failures');
   assert.equal(status, 200);
   assert.match(html, /설비별 요약/);
-  assert.match(html, new RegExp(`고장 건수 ${failures.length}건`));
+  assert.match(html, new RegExp(`고장 건수 <strong>${failures.length}</strong>건`));
   for (const f of failures) {
     assert.ok(html.includes(f.failure_id), `고장 ${f.failure_id}가 목록에 있어야 함`);
   }

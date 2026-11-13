@@ -231,6 +231,8 @@
 | AC-26 | 블록 목록에 계획과 실제 착수·종료일이 보인다 | `test/acceptance/ops-extras.test.js` |
 | AC-27 | 지연 블록에는 지연 사유가 표시된다 (사유는 `data/delay_reasons.csv`, 가상 데이터) | `test/acceptance/ops-extras.test.js` |
 | AC-28 | `/failures`에 설비 고장 이력과 설비별 요약이 보인다 (이력은 `data/equipment_failures.csv`, 가상 데이터) | `test/acceptance/ops-extras.test.js` |
+| AC-29 | `/progress`에 호선 4개 × 공정 6개 진척률 표와 전체 평균 진척률이 보인다 (평균은 blocks.csv 기준) | `test/acceptance/progress-design.test.js` |
+| AC-30 | 주요 화면은 공통 스타일(`/assets/app.css`)과 메뉴를 쓰고, 스타일 파일은 외부 주소 없이 로그인 없이 열린다 | `test/acceptance/progress-design.test.js` |
 
 ---
 

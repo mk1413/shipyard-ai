@@ -1,48 +1,25 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>블록 목록 · 조선소 생산 KPI 대시보드</title>
-  <style>
-    body { margin: 0; font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; background: #f8fafc; color: #0f172a; }
-    main { max-width: 1200px; margin: 0 auto; padding: 16px; }
-    nav a { margin-right: 12px; }
-    form { display: flex; gap: 8px; margin-bottom: 12px; }
-    input { flex: 1; padding: 8px; font-size: 1rem; }
-    button { padding: 8px 14px; }
-    .table-wrap { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; font-size: 0.85rem; background: #fff; }
-    th, td { border-bottom: 1px solid #e2e8f0; padding: 6px; text-align: left; white-space: nowrap; }
-    .muted { color: #64748b; }
-    .pager a { margin-right: 8px; }
-  </style>
-</head>
-<body>
-<main>
-  <nav>
-    <a href="/search">블록 목록·검색</a>
-    <a href="/failures">설비 고장 이력</a>
-  </nav>
-  <h1>🔍 블록 목록과 검색</h1>
-  <form method="get" action="/search">
-    <input name="q" value="<%= q %>" placeholder="블록 ID, 호선 번호, 선종, 공정 (예: 대조립, 2401, 운반선)">
-    <button type="submit">검색</button>
-  </form>
+<%- include('partials/header', { title: '블록 목록·검색', active: 'search' }) %>
+<h1>블록 목록과 검색</h1>
+<p class="lead">검색어를 비우면 전체 블록-공정을 보여 줍니다. 호선 번호, 블록 ID, 선종, 공정으로 찾을 수 있습니다.</p>
 
-  <% if (mode === 'list') { %>
-    <p class="muted">전체 블록-공정 <%= total %>건 · 페이지 <%= page %> / <%= pageCount %></p>
-  <% } else { %>
-    <p class="muted">검색 결과 <%= total %>건 (최대 100건)</p>
-  <% } %>
+<form class="search-form" method="get" action="/search" role="search">
+  <input name="q" value="<%= q %>" placeholder="예: 대조립, 2401, 운반선, 2401-B01" aria-label="블록 검색">
+  <button type="submit">검색</button>
+</form>
 
-  <div class="table-wrap">
+<% if (mode === 'list') { %>
+  <p class="muted">전체 블록-공정 <strong><%= total %></strong>건 · 페이지 <%= page %> / <%= pageCount %></p>
+<% } else { %>
+  <p class="muted">검색 결과 <strong><%= total %></strong>건 (최대 100건)</p>
+<% } %>
+
+<div class="table-wrap">
   <table>
     <thead>
       <tr>
         <th>블록</th><th>호선</th><th>선종</th><th>공정</th>
         <th>계획 착수</th><th>계획 종료</th><th>실제 착수</th><th>실제 종료</th>
-        <th>상태</th><th>지연일수</th><th>지연 사유</th>
+        <th class="num">진척률</th><th>상태</th><th class="num">지연일수</th><th>지연 사유</th>
       </tr>
     </thead>
     <tbody>
@@ -52,19 +29,22 @@
           <td><%= r.process %></td>
           <td><%= r.planned_start %></td><td><%= r.planned_end %></td>
           <td><%= r.actual_start || '-' %></td><td><%= r.actual_end || '-' %></td>
-          <td><%= r.status %></td><td><%= r.delay_days %></td><td><%= r.delay_reason || '-' %></td>
+          <td class="num"><%= Number(r.progress_pct).toFixed(1) %>%</td>
+          <td><span class="badge <%= r.status.indexOf('지연') >= 0 ? 'crit' : (r.status.indexOf('완료') === 0 ? 'good' : 'warn') %>"><%= r.status %></span></td>
+          <td class="num <%= r.delay_days > 0 ? 'delay' : '' %>"><%= r.delay_days %></td>
+          <td><%= r.delay_reason || '-' %></td>
         </tr>
       <% }) %>
     </tbody>
   </table>
-  </div>
+</div>
 
-  <% if (mode === 'list' && pageCount > 1) { %>
-    <p class="pager">
-      <% if (page > 1) { %><a href="/search?page=<%= page - 1 %>">◀ 이전</a><% } %>
-      <% if (page < pageCount) { %><a href="/search?page=<%= page + 1 %>">다음 ▶</a><% } %>
-    </p>
-  <% } %>
-</main>
-</body>
-</html>
+<% if (mode === 'list' && pageCount > 1) { %>
+  <div class="pager">
+    <% if (page > 1) { %><a href="/search?page=<%= page - 1 %>">◀ 이전</a><% } %>
+    <span class="muted"><%= page %> / <%= pageCount %></span>
+    <% if (page < pageCount) { %><a href="/search?page=<%= page + 1 %>">다음 ▶</a><% } %>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

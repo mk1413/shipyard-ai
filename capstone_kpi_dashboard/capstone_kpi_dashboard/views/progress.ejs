@@ -1,0 +1,79 @@
+<%- include('partials/header', { title: '공정 진척도', active: 'progress' }) %>
+<%
+  const fmt = (v) => (v == null ? '-' : v.toFixed(1) + '%');
+%>
+<h1>공정 진척도</h1>
+<p class="lead">호선별, 공정별 블록 진척률입니다. 진척률은 블록-공정 행의 단순 평균이며, 가상 데이터 기준일 <strong>2026-10-31</strong>입니다.</p>
+
+<section class="kpi-grid" aria-label="전체 요약">
+  <div class="card kpi <%= summary.overallLevel %>">
+    <div class="label">전체 평균 진척률</div>
+    <div class="value"><%= fmt(summary.overall) %></div>
+    <div class="sub">블록-공정 <%= summary.total %>건 기준</div>
+  </div>
+  <div class="card kpi">
+    <div class="label">완료</div>
+    <div class="value"><%= summary.done %> <span class="muted" style="font-size:1rem">/ <%= summary.total %></span></div>
+    <div class="sub">실적 종료가 있는 블록-공정</div>
+  </div>
+  <div class="card kpi <%= summary.delayed > 0 ? 'crit' : 'good' %>">
+    <div class="label">지연</div>
+    <div class="value"><%= summary.delayed %>건</div>
+    <div class="sub">계획 종료일을 넘긴 블록-공정</div>
+  </div>
+  <div class="card kpi <%= summary.mhEff == null ? '' : (summary.mhEff >= 95 ? 'good' : (summary.mhEff >= 92 ? 'warn' : 'crit')) %>">
+    <div class="label">맨아워 효율</div>
+    <div class="value"><%= fmt(summary.mhEff) %></div>
+    <div class="sub">계획 MH ÷ 실적 MH (목표 95% 이상)</div>
+  </div>
+</section>
+
+<h2>호선별 전체 진척률</h2>
+<div class="card">
+  <% summary.ships.forEach(function (s) { %>
+    <div class="ship-row">
+      <div class="ship-name">
+        <%= s.ship_no %>호선
+        <small><%= s.ship_type %> · 지연 <%= s.delayed %>건</small>
+      </div>
+      <div class="bar <%= s.level %>" role="img" aria-label="<%= s.ship_no %>호선 진척률 <%= fmt(s.avg) %>">
+        <span style="width: <%= Math.min(100, Math.max(0, s.avg || 0)).toFixed(1) %>%"></span>
+      </div>
+      <div class="pct"><%= fmt(s.avg) %></div>
+    </div>
+  <% }) %>
+</div>
+
+<h2>호선 × 공정 히트맵</h2>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>호선</th><th>선종</th>
+        <% summary.processes.forEach(function (p) { %><th class="num"><%= p %></th><% }) %>
+        <th class="num">전체</th><th class="num">지연</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% summary.ships.forEach(function (s) { %>
+        <tr>
+          <td><strong><%= s.ship_no %></strong></td>
+          <td><%= s.ship_type %></td>
+          <% summary.processes.forEach(function (p) { const c = s.cells[p]; %>
+            <td class="cell <%= c.level %>">
+              <%= fmt(c.avg) %>
+              <small><%= c.count %>블록</small>
+            </td>
+          <% }) %>
+          <td class="cell <%= s.level %>"><%= fmt(s.avg) %></td>
+          <td class="num <%= s.delayed > 0 ? 'delay' : '' %>"><%= s.delayed %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+<p class="note">
+  색 기준: <span class="badge good">90% 이상</span> <span class="badge warn">70~90%</span> <span class="badge crit">70% 미만</span> <span class="badge none">데이터 없음</span>
+</p>
+
+<%- include('partials/footer') %>

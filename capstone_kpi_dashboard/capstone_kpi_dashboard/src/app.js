@@ -4,6 +4,7 @@ const path = require('node:path');
 const express = require('express');
 const { dashboardRouter } = require('./routes/dashboard');
 const { searchRouter } = require('./routes/search');
+const { progressRouter } = require('./routes/progress');
 const { authRouter } = require('./routes/auth');
 const { requireLogin } = require('./middleware/require-login');
 
@@ -25,6 +26,8 @@ function createApp({ db, auth, rootRedirect = false }) {
 
   // Plotly 등 정적 자원은 프로젝트 안에서만 제공한다 (원칙 5)
   app.use('/vendor', express.static(path.join(__dirname, '..', 'public', 'vendor')));
+  // 화면 공통 스타일 (로그인 화면에서도 필요하므로 로그인 전에 연다)
+  app.use('/assets', express.static(path.join(__dirname, '..', 'public', 'assets')));
 
   // 로그인과 로그아웃은 로그인 없이 열린다
   app.use(authRouter({ db, auth }));
@@ -35,12 +38,13 @@ function createApp({ db, auth, rootRedirect = false }) {
     app.use(requireLogin(auth.sessionSecret));
   }
   if (rootRedirect) {
-    // 임시: 배포 환경에서 메인 대시보드(/)가 500이므로 검색 화면으로 보낸다.
+    // 임시: 배포 환경에서 메인 대시보드(/)가 500이므로 진척도 화면으로 보낸다.
     // 원인을 고치면 rootRedirect 설정을 끄면 대시보드가 다시 열린다.
-    app.get('/', (req, res) => res.redirect('/search'));
+    app.get('/', (req, res) => res.redirect('/progress'));
   } else {
     app.use(dashboardRouter(db));
   }
+  app.use(progressRouter(db));
   app.use(searchRouter(db));
   return app;
 }

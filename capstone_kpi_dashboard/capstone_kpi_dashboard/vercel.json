@@ -5,7 +5,7 @@
     }
   },
   "redirects": [
-    { "source": "/", "destination": "/search", "permanent": false }
+    { "source": "/", "destination": "/progress", "permanent": false }
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/api" }

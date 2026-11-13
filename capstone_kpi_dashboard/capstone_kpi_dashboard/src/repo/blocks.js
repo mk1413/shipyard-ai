@@ -32,4 +32,10 @@ async function listBlocks(db, requestedPage) {
   return { rows: rows.map(withStatus), total, page, pageCount };
 }
 
-module.exports = { listBlocks, withStatus, PAGE_SIZE };
+/** 전체 블록-공정 행에 상태와 지연일수를 붙여 돌려준다 (진척도 집계용). */
+async function allBlocksWithStatus(db) {
+  const rows = await all(db, 'SELECT * FROM blocks ORDER BY ship_no, block_id, process');
+  return rows.map(withStatus);
+}
+
+module.exports = { listBlocks, allBlocksWithStatus, withStatus, PAGE_SIZE };
