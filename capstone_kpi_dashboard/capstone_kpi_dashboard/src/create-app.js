@@ -5,6 +5,7 @@ const express = require('express');
 const { dashboardRouter } = require('./routes/dashboard');
 const { searchRouter } = require('./routes/search');
 const { progressRouter } = require('./routes/progress');
+const { overviewRouter } = require('./routes/overview');
 const { authRouter } = require('./routes/auth');
 const { requireLogin } = require('./middleware/require-login');
 
@@ -43,6 +44,7 @@ function createApp({ db, auth, homeProgress = false }) {
   }
   app.use(progressRouter(db));
   app.use(searchRouter(db));
+  app.use(overviewRouter());
   return app;
 }
 

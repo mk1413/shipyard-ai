@@ -308,6 +308,17 @@ td.cell.none { background: var(--none-soft); color: var(--muted); }
 }
 .empty { text-align: center; color: var(--fg-dim); padding: 32px; }
 
+/* 구성도 (SVG) */
+.diagram { width: 100%; height: auto; display: block; }
+.diagram .node { fill: var(--panel-solid); stroke: var(--accent); stroke-width: 1.5; filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.25)); }
+.diagram .node.small { stroke-width: 1; stroke: var(--panel-border); }
+.diagram .dev { fill: rgba(139, 92, 246, 0.06); stroke: var(--accent-2); stroke-width: 1.5; stroke-dasharray: 7 5; }
+.diagram .txt { fill: var(--fg); font-size: 15px; font-weight: 700; font-family: var(--sans); }
+.diagram .sub { fill: var(--fg-dim); font-size: 12px; font-family: var(--sans); }
+.diagram .label-dev { fill: var(--accent-2); font-size: 13px; font-weight: 700; font-family: var(--sans); }
+.diagram .arrow { fill: none; stroke: var(--accent); stroke-width: 2; }
+.diagram .arrowhead { fill: var(--accent); }
+
 /* 기준일 선택 */
 .asof { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 0.86rem; color: var(--fg-dim); }
 .asof label { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }

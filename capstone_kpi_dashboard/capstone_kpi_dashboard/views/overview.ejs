@@ -1,0 +1,163 @@
+<%- include('partials/header', { title: '구성도', active: 'overview' }) %>
+<div class="page-head">
+  <div>
+    <h1>대시보드 구성도</h1>
+    <p class="lead">발표할 때 이 화면을 보면서 설명합니다. 위쪽은 실행 구조, 아래쪽은 개발 과정과 체크리스트 항목의 위치입니다.</p>
+  </div>
+</div>
+
+<h2>1. 실행 구조</h2>
+<section class="card">
+  <svg class="diagram" viewBox="0 0 960 360" role="img" aria-label="대시보드 실행 구조도">
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" class="arrowhead"/>
+      </marker>
+    </defs>
+
+    <!-- 요청 흐름 -->
+    <rect class="node" x="30" y="40" width="180" height="62" rx="14"/>
+    <text class="txt" x="120" y="66" text-anchor="middle">브라우저</text>
+    <text class="sub" x="120" y="86" text-anchor="middle">사용자 화면 (탭 4개)</text>
+
+    <rect class="node" x="262" y="40" width="200" height="62" rx="14"/>
+    <text class="txt" x="362" y="66" text-anchor="middle">Vercel 진입점</text>
+    <text class="sub" x="362" y="86" text-anchor="middle">api/index.js</text>
+
+    <rect class="node" x="514" y="40" width="200" height="62" rx="14"/>
+    <text class="txt" x="614" y="66" text-anchor="middle">Express 앱</text>
+    <text class="sub" x="614" y="86" text-anchor="middle">create-app.js (라우트 연결)</text>
+
+    <path class="arrow" d="M210,71 L262,71" marker-end="url(#ah)"/>
+    <path class="arrow" d="M462,71 L514,71" marker-end="url(#ah)"/>
+
+    <!-- 화면 라우트 -->
+    <rect class="node" x="332" y="150" width="160" height="62" rx="14"/>
+    <text class="txt" x="412" y="176" text-anchor="middle">/ 공정 진척도</text>
+    <text class="sub" x="412" y="196" text-anchor="middle">routes/progress.js</text>
+
+    <rect class="node" x="514" y="150" width="160" height="62" rx="14"/>
+    <text class="txt" x="594" y="176" text-anchor="middle">/search 블록</text>
+    <text class="sub" x="594" y="196" text-anchor="middle">routes/search.js</text>
+
+    <rect class="node" x="696" y="150" width="160" height="62" rx="14"/>
+    <text class="txt" x="776" y="176" text-anchor="middle">/failures 설비</text>
+    <text class="sub" x="776" y="196" text-anchor="middle">routes/search.js</text>
+
+    <path class="arrow" d="M580,102 L412,150" marker-end="url(#ah)"/>
+    <path class="arrow" d="M614,102 L594,150" marker-end="url(#ah)"/>
+    <path class="arrow" d="M650,102 L776,150" marker-end="url(#ah)"/>
+
+    <!-- 계산과 저장 -->
+    <rect class="node" x="332" y="262" width="330" height="62" rx="14"/>
+    <text class="txt" x="497" y="288" text-anchor="middle">계산과 조회</text>
+    <text class="sub" x="497" y="308" text-anchor="middle">domain/ (KPI, 상태, 기준일)  ·  repo/ (블록, 고장)</text>
+
+    <rect class="node" x="700" y="262" width="200" height="62" rx="14"/>
+    <text class="txt" x="800" y="288" text-anchor="middle">Turso DB</text>
+    <text class="sub" x="800" y="308" text-anchor="middle">libsql · 가상 데이터</text>
+
+    <path class="arrow" d="M412,212 L460,262" marker-end="url(#ah)"/>
+    <path class="arrow" d="M594,212 L560,262" marker-end="url(#ah)"/>
+    <path class="arrow" d="M776,212 L640,262" marker-end="url(#ah)"/>
+    <path class="arrow" d="M662,293 L700,293" marker-end="url(#ah)"/>
+
+    <!-- 개발 과정 (화면 밖) -->
+    <rect class="dev" x="30" y="150" width="262" height="174" rx="16"/>
+    <text class="label-dev" x="48" y="174">개발 과정 (화면 밖)</text>
+    <rect class="node small" x="48" y="186" width="226" height="30" rx="8"/>
+    <text class="sub" x="161" y="206" text-anchor="middle">명세 spec.md · 수용 기준 AC-01~36</text>
+    <rect class="node small" x="48" y="226" width="226" height="30" rx="8"/>
+    <text class="sub" x="161" y="246" text-anchor="middle">테스트 npm test · 212개 통과</text>
+    <rect class="node small" x="48" y="266" width="226" height="30" rx="8"/>
+    <text class="sub" x="161" y="286" text-anchor="middle">에이전트 coder · planner · reviewer</text>
+    <rect class="node small" x="48" y="306" width="226" height="30" rx="8"/>
+    <text class="sub" x="161" y="326" text-anchor="middle">Stop 훅 → 끝내기 전에 npm test</text>
+  </svg>
+  <p class="note">실선은 사용자 요청의 흐름이고, 점선 상자는 화면 밖에서 작업을 검증하는 개발 도구입니다. 비밀 값은 Vercel 환경 변수로만 받습니다.</p>
+</section>
+
+<h2>2. 발표 흐름과 보여 줄 화면</h2>
+<section class="tiles">
+  <a class="tile" href="/">
+    <div class="ico">📊</div>
+    <strong>첫 화면: 진척도와 지표</strong>
+    <span>지표 카드, 호선별 그래프, 기준일 칸, 맨아워 표 (AC-29, 31, 32, 35, 36)</span>
+    <span class="go">이동 →</span>
+  </a>
+  <a class="tile" href="/search">
+    <div class="ico">🧱</div>
+    <strong>블록 목록·검색</strong>
+    <span>블록 360건, 날짜, 지연 사유, MH 열, 상태·호선 필터 (AC-25~27, 33, 36)</span>
+    <span class="go">이동 →</span>
+  </a>
+  <a class="tile" href="/failures">
+    <div class="ico">🛠</div>
+    <strong>설비 고장</strong>
+    <span>설비별 정지 시간 그래프와 고장 목록 (AC-28, 34)</span>
+    <span class="go">이동 →</span>
+  </a>
+</section>
+
+<h2>3. 체크리스트 항목은 어디에 있나</h2>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>항목</th><th>어디서 확인하나</th><th>무엇을 뜻하나</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>실행 안내</strong></td>
+        <td>대시보드 폴더 <code>package.json</code>의 명령</td>
+        <td>처음 보는 사람도 <code>npm start</code>, <code>npm test</code>로 바로 실행할 수 있다. CLAUDE.md는 아직 없다.</td>
+      </tr>
+      <tr>
+        <td><strong>명세와 수용 기준</strong></td>
+        <td><code>.specify/specs/kpi-dashboard/spec.md</code></td>
+        <td>AC-01~36이 있고, 화면의 각 기능이 기준 하나에 대응한다. 파일럿 계획서는 없다.</td>
+      </tr>
+      <tr>
+        <td><strong>테스트</strong></td>
+        <td>터미널 <code>npm test</code>, <code>test/acceptance/</code></td>
+        <td>기준마다 테스트가 있고 212개가 모두 통과한다. 플러그인 검증은 아직 없다.</td>
+      </tr>
+      <tr>
+        <td><strong>역할 분리 에이전트</strong></td>
+        <td><code>.claude/agents/</code> 세 파일의 tools 줄</td>
+        <td>coder는 편집과 실행, planner와 reviewer는 편집 도구가 없다. 권한이 서로 다르다.</td>
+      </tr>
+      <tr>
+        <td><strong>훅</strong></td>
+        <td><code>.claude/settings.json</code>, <code>scripts/stop-check.js</code></td>
+        <td>작업을 끝내기 전에 npm test가 자동으로 돈다. 실패하면 끝내기를 한 번 막는다.</td>
+      </tr>
+      <tr>
+        <td><strong>deny 규칙</strong></td>
+        <td>설정 파일</td>
+        <td>아직 없다. 대신 저장소 루트 <code>plugins/qc-kit</code>의 데이터 보호 훅이 <code>data/</code> 원본 수정을 막는다.</td>
+      </tr>
+      <tr>
+        <td><strong>비밀 값</strong></td>
+        <td>Vercel 환경 변수 화면 (이름만), 코드의 <code>process.env</code></td>
+        <td>DB 주소, 토큰, 세션 키, 사번 해시 키를 코드에 두지 않는다. 명단 파일은 git에서 제외된다.</td>
+      </tr>
+      <tr>
+        <td><strong>가상 데이터</strong></td>
+        <td><code>data/</code> 폴더, 설비 고장 화면의 설명</td>
+        <td>실제 사내 데이터가 아니다. 배포의 DISABLE_LOGIN은 실제 데이터를 넣기 전에 꺼야 한다.</td>
+      </tr>
+      <tr>
+        <td><strong>외부 연결 (MCP)</strong></td>
+        <td>저장소 루트 <code>plugins/qna-helper/.mcp.json</code></td>
+        <td>QnA 게시판 MCP 서버. 대시보드 자체는 Turso DB에 직접 연결한다.</td>
+      </tr>
+      <tr>
+        <td><strong>남은 과제</strong></td>
+        <td>-</td>
+        <td>CLAUDE.md, deny 규칙, 파일럿 계획서, 플러그인 검증, 비교 테스트(트랙 B~D)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/footer') %>
