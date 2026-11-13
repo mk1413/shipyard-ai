@@ -77,7 +77,8 @@ test('AC-28: 설비 고장 이력 화면에 고장 건수와 설비별 요약이
   const { html, status } = await get('/failures');
   assert.equal(status, 200);
   assert.match(html, /설비별 요약/);
-  assert.match(html, new RegExp(`고장 건수 <strong>${failures.length}</strong>건`));
+  assert.match(html, new RegExp(`고장 ${failures.length}건`));
+  assert.match(html, /설비별 정지 시간/);
   for (const f of failures) {
     assert.ok(html.includes(f.failure_id), `고장 ${f.failure_id}가 목록에 있어야 함`);
   }

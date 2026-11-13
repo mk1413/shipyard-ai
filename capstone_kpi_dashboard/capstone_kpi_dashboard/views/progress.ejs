@@ -2,12 +2,13 @@
 <%
   const fmt = (v) => (v == null ? '-' : v.toFixed(1) + '%');
   const doneRate = summary.total ? (summary.done / summary.total) * 100 : null;
-  const mhLevel = summary.mhEff == null ? '' : (summary.mhEff >= 95 ? 'good' : (summary.mhEff >= 92 ? 'warn' : 'crit'));
+  const mhLevel = summary.mhEff == null ? 'na' : (summary.mhEff >= 95 ? 'ok' : (summary.mhEff >= 92 ? 'warn' : 'crit'));
+  const tone = (lv) => (lv === 'ok' ? 'good' : (lv === 'warn' ? 'warn' : (lv === 'crit' ? 'crit' : '')));
 %>
 <div class="page-head">
   <div>
     <h1>공정 진척도</h1>
-    <p class="lead">호선별, 공정별 블록 진척 현황을 한눈에 봅니다. 진척률은 블록-공정 행의 단순 평균입니다.</p>
+    <p class="lead">호선별, 공정별 블록 진척 현황과 핵심 생산 지표를 한 화면에서 봅니다.</p>
   </div>
   <span class="stamp">기준일 2026-10-31 · 가상 데이터</span>
 </div>
@@ -16,19 +17,29 @@
   <div class="card kpi <%= summary.overallLevel %>">
     <div class="label">전체 평균 진척률</div>
     <div class="value"><%= fmt(summary.overall) %></div>
-    <div class="sub">블록-공정 <%= summary.total %>건 기준</div>
+    <div class="sub">완료 <%= summary.done %> / <%= summary.total %> · 가장 낮은 호선 <%= worst ? worst.ship_no + '호선 ' + fmt(worst.avg) : '-' %></div>
   </div>
-  <div class="card kpi">
-    <div class="label">완료율</div>
-    <div class="value"><%= fmt(doneRate) %></div>
-    <div class="sub">완료 <%= summary.done %> / 전체 <%= summary.total %></div>
+  <div class="card kpi <%= tone(ach.level) %>">
+    <div class="label">생산 달성률</div>
+    <div class="value"><%= fmt(ach.value) %></div>
+    <div class="sub">실적 ÷ 계획 · 목표 95% 이상</div>
+  </div>
+  <div class="card kpi <%= tone(defect.level) %>">
+    <div class="label">불량률</div>
+    <div class="value"><%= fmt(defect.value) %></div>
+    <div class="sub">불량 ÷ 검사 · 목표 3% 이하</div>
+  </div>
+  <div class="card kpi <%= tone(oee.level) %>">
+    <div class="label">설비 종합효율(OEE)</div>
+    <div class="value"><%= fmt(oee.value) %></div>
+    <div class="sub">가동률 × 성능 × 양품률 · 목표 75% 이상</div>
   </div>
   <div class="card kpi <%= summary.delayed > 0 ? 'crit' : 'good' %>">
     <div class="label">지연 블록-공정</div>
     <div class="value"><%= summary.delayed %><small>건</small></div>
     <div class="sub">계획 종료일을 넘긴 항목</div>
   </div>
-  <div class="card kpi <%= mhLevel %>">
+  <div class="card kpi <%= tone(mhLevel) %>">
     <div class="label">맨아워 효율</div>
     <div class="value"><%= fmt(summary.mhEff) %></div>
     <div class="sub">계획 MH ÷ 실적 MH · 목표 95%</div>
@@ -37,11 +48,6 @@
     <div class="label">설비 고장</div>
     <div class="value"><%= failureCount %><small>건</small></div>
     <div class="sub">정지 합계 <%= failureMinutes %>분<% if (topFailure) { %> · 최다 <%= topFailure.equipment_id %>(<%= topFailure.n %>건)<% } %></div>
-  </div>
-  <div class="card kpi <%= worst ? worst.level : '' %>">
-    <div class="label">진척 가장 낮은 호선</div>
-    <div class="value"><%= worst ? worst.ship_no + '호선' : '-' %></div>
-    <div class="sub"><%= worst ? '평균 ' + fmt(worst.avg) + ' · 지연 ' + worst.delayed + '건' : '데이터 없음' %></div>
   </div>
 </section>
 
@@ -68,18 +74,24 @@
   </div>
 </section>
 
+<section class="card" style="margin-top:18px">
+  <h3>일별 생산 달성률 추이</h3>
+  <p class="hint">날짜별 실적 ÷ 계획 (전 공정 합계). 점선은 목표 95%입니다. 빨간 점은 목표 미달인 날입니다.</p>
+  <%- trendHtml %>
+</section>
+
 <h2>바로가기</h2>
 <section class="tiles">
   <a class="tile" href="/search">
     <div class="ico">🧱</div>
     <strong>블록 목록·검색</strong>
-    <span>블록-공정 <%= summary.total %>건을 날짜, 상태, 지연 사유와 함께 봅니다.</span>
+    <span>블록-공정 <%= summary.total %>건을 상태, 호선, 지연 사유와 함께 필터링합니다.</span>
     <span class="go">이동 →</span>
   </a>
   <a class="tile" href="/failures">
     <div class="ico">🛠</div>
     <strong>설비 고장 이력</strong>
-    <span>설비별 고장 건수와 정지 시간, 원인을 확인합니다.</span>
+    <span>설비별 고장 건수, 정지 시간, 원인을 확인합니다.</span>
     <span class="go">이동 →</span>
   </a>
   <a class="tile" href="/">

@@ -1,8 +1,19 @@
 <%- include('partials/header', { title: '설비 고장 이력', active: 'failures' }) %>
-<h1>설비 고장 이력</h1>
-<p class="lead">가상 데이터입니다. 고장 건수 <strong><%= rows.length %></strong>건.</p>
+<div class="page-head">
+  <div>
+    <h1>설비 고장 이력</h1>
+    <p class="lead">설비별 고장 건수와 정지 시간, 원인을 확인합니다. 가상 데이터입니다.</p>
+  </div>
+  <span class="stamp">고장 <%= rows.length %>건 · 정지 <%= rows.reduce(function (s, r) { return s + Number(r.duration_min); }, 0) %>분</span>
+</div>
 
-<h2>설비별 요약 (정지 시간 많은 순)</h2>
+<section class="card">
+  <h3>설비별 정지 시간</h3>
+  <p class="hint">막대는 설비별 정지 시간 합계(분)입니다. 가장 긴 막대가 100%입니다.</p>
+  <%- chartHtml %>
+</section>
+
+<h2>설비별 요약</h2>
 <div class="table-wrap">
   <table>
     <thead><tr><th>설비</th><th>설비 종류</th><th class="num">고장 건수</th><th class="num">정지 시간 합계(분)</th></tr></thead>

@@ -234,6 +234,9 @@
 | AC-29 | `/progress`에 호선 4개 × 공정 6개 진척률 표와 전체 평균 진척률이 보인다 (평균은 blocks.csv 기준) | `test/acceptance/progress-design.test.js` |
 | AC-30 | 주요 화면은 공통 스타일(`/assets/app.css`)과 메뉴를 쓰고, 스타일 파일은 외부 주소 없이 로그인 없이 열린다 | `test/acceptance/progress-design.test.js` |
 | AC-31 | 첫 화면의 그래프는 호선별 막대와 공정별 막대를 SVG로 그리고, 목표 90% 선을 표시한다 (막대 24개 = 호선 4 × 공정 6) | `test/acceptance/progress-design.test.js` |
+| AC-32 | 첫 화면에 생산 달성률, 불량률, OEE가 계산 함수(`src/domain/kpi.js`) 결과와 같은 값으로 나오고, 일별 달성률 추이 그래프가 있다 | `test/acceptance/final-review.test.js` |
+| AC-33 | 블록 목록은 상태(지연, 진행, 완료, 대기)와 호선으로 필터링되고, 알 수 없는 필터 값은 전체로 처리한다 | `test/acceptance/final-review.test.js` |
+| AC-34 | 설비 고장 화면에 설비별 정지 시간 막대그래프가 있다 | `test/acceptance/final-review.test.js` |
 
 ---
 

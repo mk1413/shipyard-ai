@@ -1,18 +1,43 @@
 <%- include('partials/header', { title: '블록 목록·검색', active: 'search' }) %>
 <h1>블록 목록과 검색</h1>
-<p class="lead">검색어를 비우면 전체 블록-공정을 보여 줍니다. 호선 번호, 블록 ID, 선종, 공정으로 찾을 수 있습니다.</p>
+<p class="lead">검색어를 비우면 전체 블록-공정을 보여 줍니다. 상태와 호선으로 좁힐 수 있고, 호선 번호, 블록 ID, 선종, 공정으로 검색할 수 있습니다.</p>
 
 <form class="search-form" method="get" action="/search" role="search">
+  <input type="hidden" name="status" value="<%= filters.status %>">
+  <input type="hidden" name="ship" value="<%= filters.ship %>">
   <input name="q" value="<%= q %>" placeholder="예: 대조립, 2401, 운반선, 2401-B01" aria-label="블록 검색">
   <button type="submit">검색</button>
 </form>
 
+<div class="filter-bar" aria-label="상태 필터">
+  <span class="filter-label">상태</span>
+  <% statusOptions.forEach(function (o) { %>
+    <a class="chip<%= filters.status === o.key ? ' on' : '' %>" href="<%= links.status[o.key] %>"><%= o.label %></a>
+  <% }) %>
+</div>
+<div class="filter-bar" aria-label="호선 필터">
+  <span class="filter-label">호선</span>
+  <% ['all'].concat(ships).forEach(function (s) { %>
+    <a class="chip<%= filters.ship === s ? ' on' : '' %>" href="<%= links.ship[s] %>"><%= s === 'all' ? '전체' : s + '호선' %></a>
+  <% }) %>
+</div>
+
 <% if (mode === 'list') { %>
-  <p class="muted">전체 블록-공정 <strong><%= total %></strong>건 · 페이지 <%= page %> / <%= pageCount %></p>
+  <p class="muted">
+    <% if (filters.status !== 'all' || filters.ship !== 'all') { %>
+      필터 결과 <strong><%= total %></strong>건 (전체 <%= allTotal %>건 중)
+    <% } else { %>
+      전체 블록-공정 <strong><%= total %></strong>건
+    <% } %>
+    · 페이지 <%= page %> / <%= pageCount %>
+  </p>
 <% } else { %>
   <p class="muted">검색 결과 <strong><%= total %></strong>건 (최대 100건)</p>
 <% } %>
 
+<% if (rows.length === 0) { %>
+  <div class="card empty">조건에 맞는 블록이 없습니다. 상태나 호선 필터를 바꿔 보세요.</div>
+<% } else { %>
 <div class="table-wrap">
   <table>
     <thead>
@@ -38,12 +63,13 @@
     </tbody>
   </table>
 </div>
+<% } %>
 
 <% if (mode === 'list' && pageCount > 1) { %>
   <div class="pager">
-    <% if (page > 1) { %><a href="/search?page=<%= page - 1 %>">◀ 이전</a><% } %>
+    <% if (page > 1) { %><a href="<%= links.page(page - 1) %>">◀ 이전</a><% } %>
     <span class="muted"><%= page %> / <%= pageCount %></span>
-    <% if (page < pageCount) { %><a href="/search?page=<%= page + 1 %>">다음 ▶</a><% } %>
+    <% if (page < pageCount) { %><a href="<%= links.page(page + 1) %>">다음 ▶</a><% } %>
   </div>
 <% } %>
 

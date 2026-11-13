@@ -294,6 +294,29 @@ td.cell.none { background: var(--none-soft); color: var(--muted); }
   border-radius: 12px; padding: 11px 14px; font-weight: 600;
 }
 
+/* 필터 칩 */
+.filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; }
+.filter-label { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); min-width: 36px; }
+.chip {
+  display: inline-block; padding: 6px 13px; border-radius: 999px; text-decoration: none; font-size: 0.84rem; font-weight: 600;
+  color: var(--fg-dim); background: var(--panel); border: 1px solid var(--panel-border); transition: all 0.15s;
+}
+.chip:hover { color: var(--fg); border-color: var(--accent); }
+.chip.on {
+  color: #04111d; background: linear-gradient(120deg, var(--accent), var(--accent-2)); border-color: transparent;
+  box-shadow: 0 0 18px -4px var(--accent);
+}
+.empty { text-align: center; color: var(--fg-dim); padding: 32px; }
+
+/* 일별 추이 */
+.trend-line { stroke: var(--accent); stroke-width: 2.5; filter: drop-shadow(0 0 6px var(--accent)); stroke-linejoin: round; }
+.trend-dot { stroke: var(--panel-solid); stroke-width: 1.5; }
+.trend-dot.good { fill: var(--good); }
+.trend-dot.crit { fill: var(--crit); }
+
+/* 키보드 포커스 표시 */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
 /* 휴대폰 */
 @media (max-width: 640px) {
   main { padding: 18px 14px 44px; }
