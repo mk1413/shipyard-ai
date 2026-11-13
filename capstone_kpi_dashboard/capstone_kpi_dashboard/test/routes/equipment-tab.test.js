@@ -20,19 +20,19 @@ let db;
 
 before(async () => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kpi-equip-tab-'));
-  db = openDatabase(path.join(dir, 'app.db'));
-  migrateUp(db, path.join(ROOT, 'src', 'db', 'migrations'));
-  importAll(db, path.join(ROOT, 'data'));
+  db = await openDatabase(path.join(dir, 'app.db'));
+  await migrateUp(db, path.join(ROOT, 'src', 'db', 'migrations'));
+  await importAll(db, path.join(ROOT, 'data'));
   const app = createApp({ db, auth: { hashKey: 'equip-key', sessionSecret: SECRET, sessionHours: 8 } });
   server = app.listen(0);
   await new Promise((r) => server.once('listening', r));
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
-after(() => {
+after(async () => {
   server.close();
   db.close();
-  fs.rmSync(dir, { recursive: true, force: true });
+  try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* Windows에서 libsql이 파일 핸들을 늦게 놓아 임시 폴더 삭제가 실패할 수 있다 */ }
 });
 
 test('탭 3에 요약 카드 4개(가동률, 성능효율, 양품률, OEE)가 있다', async () => {

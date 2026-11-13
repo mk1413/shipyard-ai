@@ -33,33 +33,27 @@ function convert(value, type) {
 }
 
 /**
- * CSV 3종을 읽어 테이블을 전부 지운 뒤 다시 넣는다. 한 트랜잭션이라 중간에 실패하면 아무것도 바뀌지 않는다.
- * @param {import('node:sqlite').DatabaseSync} db
+ * CSV 3종을 읽어 테이블을 전부 지운 뒤 다시 넣는다. batch 한 번으로 실행하므로 중간에 실패하면 아무것도 바뀌지 않는다.
+ * @param {import('@libsql/client').Client} db
  * @param {string} dataDir CSV 폴더
  */
-function importAll(db, dataDir) {
+async function importAll(db, dataDir) {
   const tables = Object.keys(SPEC);
   const parsed = tables.map((t) => {
     const text = fs.readFileSync(path.join(dataDir, SPEC[t].file), 'utf8');
     return { table: t, rows: parseCsv(text), cols: SPEC[t].cols };
   });
 
-  db.exec('BEGIN');
-  try {
-    for (const { table } of parsed) db.exec(`DELETE FROM ${table};`);
-    for (const { table, rows, cols } of parsed) {
-      const names = Object.keys(cols);
-      const sql = `INSERT INTO ${table} (${names.join(', ')}) VALUES (${names.map(() => '?').join(', ')})`;
-      const stmt = db.prepare(sql);
-      for (const row of rows) {
-        stmt.run(...names.map((n) => convert(row[n], cols[n])));
-      }
+  const stmts = [];
+  for (const { table } of parsed) stmts.push({ sql: `DELETE FROM ${table};`, args: [] });
+  for (const { table, rows, cols } of parsed) {
+    const names = Object.keys(cols);
+    const sql = `INSERT INTO ${table} (${names.join(', ')}) VALUES (${names.map(() => '?').join(', ')})`;
+    for (const row of rows) {
+      stmts.push({ sql, args: names.map((n) => convert(row[n], cols[n])) });
     }
-    db.exec('COMMIT');
-  } catch (err) {
-    db.exec('ROLLBACK');
-    throw err;
   }
+  await db.batch(stmts, 'write');
 }
 
 module.exports = { importAll };

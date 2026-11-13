@@ -37,12 +37,12 @@ function formatDelta(key, diff) {
  * 대시보드 화면에 필요한 값을 만든다.
  * 생산 데이터가 없으면 { empty: true }만 돌려준다 (FR-3).
  */
-function buildDashboard(db, raw) {
-  const b = bounds(db);
+async function buildDashboard(db, raw) {
+  const b = await bounds(db);
   const f = normalizeFilters(raw, b);
-  const P = productionRows(db, f);
-  const E = equipmentRows(db, f);
-  const B = blockRows(db, f);
+  const P = await productionRows(db, f);
+  const E = await equipmentRows(db, f);
+  const B = await blockRows(db, f);
 
   if (P.length === 0) {
     return { empty: true, filters: f, bounds: b };
@@ -59,8 +59,8 @@ function buildDashboard(db, raw) {
   // 직전 기간 (FR-5). 직전 기간 생산 데이터가 하나도 없으면 증감을 생략한다 (AC-06).
   const prev = previousPeriod(f.start, f.end);
   const pf = { ...f, start: prev.start, end: prev.end };
-  const Pp = productionRows(db, pf);
-  const Ep = equipmentRows(db, pf);
+  const Pp = await productionRows(db, pf);
+  const Ep = await equipmentRows(db, pf);
   const prevValues = Pp.length
     ? { achieve: achieve(Pp), oee: oeeCalc(Ep).oee, defect: defectRate(Pp) }
     : null;
@@ -109,7 +109,7 @@ function buildDashboard(db, raw) {
     tabAlerts.push({ tab: 'quality', level: defectWarning.level, message: defectWarning.message });
   }
 
-  const top = topDelayed(db, f, 10);
+  const top = await topDelayed(db, f, 10);
 
   // 블록 탭 (FR-8). 블록 선택 목록은 호선·공정 필터만 따르고 기간 필터는 적용하지 않는다.
   const blocks = B.map((r) => ({

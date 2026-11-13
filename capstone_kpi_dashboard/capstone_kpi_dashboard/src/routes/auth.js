@@ -8,7 +8,7 @@ const FAIL_MESSAGE = '사번 또는 이름이 일치하지 않습니다';
 
 /**
  * 간이 로그인 라우트 (FR-12).
- * @param {{db: import('node:sqlite').DatabaseSync, auth: {hashKey: string, sessionSecret: string, sessionHours: number}}} deps
+ * @param {{db: import('@libsql/client').Client, auth: {hashKey: string, sessionSecret: string, sessionHours: number}}} deps
  */
 function authRouter({ db, auth }) {
   const router = express.Router();
@@ -18,10 +18,10 @@ function authRouter({ db, auth }) {
     res.render('login', { error: null });
   });
 
-  router.post('/login', (req, res) => {
+  router.post('/login', async (req, res) => {
     const employeeNo = req.body && req.body.employee_no;
     const name = req.body && req.body.name;
-    const userId = verifyLogin(db, auth.hashKey, employeeNo, name);
+    const userId = await verifyLogin(db, auth.hashKey, employeeNo, name);
 
     if (userId == null) {
       // 실패는 시각만 남긴다. 사번과 이름은 남기지 않는다 (원칙 3).

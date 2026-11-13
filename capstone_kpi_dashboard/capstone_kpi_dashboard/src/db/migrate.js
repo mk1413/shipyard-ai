@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { get } = require('./query');
 
 /**
  * 마이그레이션 파일 목록. 파일 이름은 `NNNN_이름.up.sql`, `NNNN_이름.down.sql` 형식이다.
@@ -25,8 +26,8 @@ function listMigrations(dir) {
     .sort((a, b) => a.version - b.version);
 }
 
-function ensureHistoryTable(db) {
-  db.exec(`
+async function ensureHistoryTable(db) {
+  await db.executeMultiple(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       version    INTEGER PRIMARY KEY,
       name       TEXT NOT NULL,
@@ -36,37 +37,39 @@ function ensureHistoryTable(db) {
 }
 
 /** 현재 적용된 가장 높은 버전. 없으면 0. */
-function currentVersion(db) {
-  ensureHistoryTable(db);
-  const row = db.prepare('SELECT MAX(version) AS v FROM schema_migrations').get();
+async function currentVersion(db) {
+  await ensureHistoryTable(db);
+  const row = await get(db, 'SELECT MAX(version) AS v FROM schema_migrations');
   return row.v == null ? 0 : Number(row.v);
 }
 
-function inTransaction(db, fn) {
-  db.exec('BEGIN');
+/** 트랜잭션 안에서 fn(tx)를 실행한다. 실패하면 롤백한다. */
+async function inTransaction(db, fn) {
+  const tx = await db.transaction('write');
   try {
-    fn();
-    db.exec('COMMIT');
+    await fn(tx);
+    await tx.commit();
   } catch (err) {
-    db.exec('ROLLBACK');
+    await tx.rollback();
     throw err;
+  } finally {
+    tx.close();
   }
 }
 
 /** 아직 적용되지 않은 마이그레이션을 버전 순서대로 적용한다. */
-function migrateUp(db, dir) {
-  ensureHistoryTable(db);
-  const applied = currentVersion(db);
+async function migrateUp(db, dir) {
+  await ensureHistoryTable(db);
+  const applied = await currentVersion(db);
   for (const m of listMigrations(dir)) {
     if (m.version <= applied) continue;
     const sql = fs.readFileSync(m.upFile, 'utf8');
-    inTransaction(db, () => {
-      db.exec(sql);
-      db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
-        m.version,
-        m.name,
-        new Date().toISOString(),
-      );
+    await inTransaction(db, async (tx) => {
+      await tx.executeMultiple(sql);
+      await tx.execute({
+        sql: 'INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)',
+        args: [m.version, m.name, new Date().toISOString()],
+      });
     });
   }
 }
@@ -77,20 +80,20 @@ function migrateUp(db, dir) {
  * @param {number} opts.to 남길 가장 높은 버전 (0이면 전부 되돌림)
  * @param {string} [opts.backupPath] 지정하면 되돌리기 전에 VACUUM INTO로 백업한다. 백업이 실패하면 중단한다.
  */
-function migrateDown(db, dir, { to, backupPath }) {
-  ensureHistoryTable(db);
+async function migrateDown(db, dir, { to, backupPath }) {
+  await ensureHistoryTable(db);
   if (backupPath) {
-    db.prepare('VACUUM INTO ?').run(backupPath);
+    await db.execute({ sql: 'VACUUM INTO ?', args: [backupPath] });
   }
-  const all = listMigrations(dir);
-  const targets = all.filter((m) => m.version > to).sort((a, b) => b.version - a.version);
+  const migrations = listMigrations(dir);
+  const targets = migrations.filter((m) => m.version > to).sort((a, b) => b.version - a.version);
   for (const m of targets) {
-    const applied = db.prepare('SELECT 1 FROM schema_migrations WHERE version = ?').get(m.version);
+    const applied = await get(db, 'SELECT 1 AS ok FROM schema_migrations WHERE version = ?', [m.version]);
     if (!applied) continue;
     const sql = fs.readFileSync(m.downFile, 'utf8');
-    inTransaction(db, () => {
-      db.exec(sql);
-      db.prepare('DELETE FROM schema_migrations WHERE version = ?').run(m.version);
+    await inTransaction(db, async (tx) => {
+      await tx.executeMultiple(sql);
+      await tx.execute({ sql: 'DELETE FROM schema_migrations WHERE version = ?', args: [m.version] });
     });
   }
 }

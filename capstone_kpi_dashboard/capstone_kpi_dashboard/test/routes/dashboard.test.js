@@ -1,3 +1,4 @@
+const { all, get: dbGet } = require('../../src/db/query');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const os = require('node:os');
@@ -22,19 +23,19 @@ let db;
 
 before(async () => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kpi-route-'));
-  db = openDatabase(path.join(dir, 'app.db'));
-  migrateUp(db, path.join(ROOT, 'src', 'db', 'migrations'));
-  importAll(db, path.join(ROOT, 'data'));
+  db = await openDatabase(path.join(dir, 'app.db'));
+  await migrateUp(db, path.join(ROOT, 'src', 'db', 'migrations'));
+  await importAll(db, path.join(ROOT, 'data'));
   const app = createApp({ db, auth: { hashKey: 'dash-test-key', sessionSecret: SECRET, sessionHours: 8 } });
   server = app.listen(0);
   await new Promise((r) => server.once('listening', r));
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
-after(() => {
+after(async () => {
   server.close();
   db.close();
-  fs.rmSync(dir, { recursive: true, force: true });
+  try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* Windows에서 libsql이 파일 핸들을 늦게 놓아 임시 폴더 삭제가 실패할 수 있다 */ }
 });
 
 async function get(query) {
@@ -107,40 +108,40 @@ test('정적 파일 vendor/plotly.min.js 를 로컬에서 제공한다 (원칙 5
 });
 
 // P4: 탭 2 데이터 연결 (FR-8, AC-12, T037)
-test('P4: 서비스는 블록 탭 차트 blockDonut, blockProgress를 만든다', () => {
-  const d = buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401', '2402'] });
+test('P4: 서비스는 블록 탭 차트 blockDonut, blockProgress를 만든다', async () => {
+  const d = await buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401', '2402'] });
   assert.ok(d.charts.blockDonut);
   assert.ok(d.charts.blockProgress);
   assert.equal(d.charts.blockDonut.data[0].type, 'pie');
 });
 
-test('P4: 블록 선택 목록은 호선·공정 필터를 따르고 기간 필터는 적용하지 않는다', () => {
-  const all = buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'] });
-  const narrow = buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'], start: '2026-10-13', end: '2026-10-17' });
+test('P4: 블록 선택 목록은 호선·공정 필터를 따르고 기간 필터는 적용하지 않는다', async () => {
+  const all = await buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'] });
+  const narrow = await buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'], start: '2026-10-13', end: '2026-10-17' });
   assert.ok(all.blocks.length > 0);
   assert.deepEqual(narrow.blocks.map((b) => b.key), all.blocks.map((b) => b.key));
   assert.ok(all.blocks.every((b) => b.ship_no === '2401'));
 
-  const cutOnly = buildDashboard(db, { f: '1', processes: ['절단'], ships: ['2401'] });
+  const cutOnly = await buildDashboard(db, { f: '1', processes: ['절단'], ships: ['2401'] });
   assert.ok(cutOnly.blocks.length > 0);
   assert.ok(cutOnly.blocks.every((b) => b.process === '절단'));
 });
 
-test('P4: 블록을 선택하면 간트 차트가 charts.gantt에 있고, 선택한 블록을 돌려준다', () => {
-  const base = buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'] });
+test('P4: 블록을 선택하면 간트 차트가 charts.gantt에 있고, 선택한 블록을 돌려준다', async () => {
+  const base = await buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'] });
   const key = base.blocks[0].key;
-  const d = buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'], block: key });
+  const d = await buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'], block: key });
   assert.ok(d.charts.gantt);
   assert.equal(d.selectedBlock.key, key);
   assert.equal(d.charts.gantt.data[0].name, '계획');
 });
 
-test('P4: 선택한 블록이 없거나 목록에 없으면 간트 차트 키는 없고 selectedBlock은 null이다', () => {
-  const none = buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'] });
+test('P4: 선택한 블록이 없거나 목록에 없으면 간트 차트 키는 없고 selectedBlock은 null이다', async () => {
+  const none = await buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'] });
   assert.equal('gantt' in none.charts, false);
   assert.equal(none.selectedBlock, null);
 
-  const unknown = buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'], block: '없는블록|절단' });
+  const unknown = await buildDashboard(db, { f: '1', processes: PROCESSES, ships: ['2401'], block: '없는블록|절단' });
   assert.equal('gantt' in unknown.charts, false);
   assert.equal(unknown.selectedBlock, null);
 });

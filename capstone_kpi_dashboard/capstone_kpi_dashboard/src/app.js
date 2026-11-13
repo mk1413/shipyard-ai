@@ -10,7 +10,7 @@ const { requireLogin } = require('./middleware/require-login');
 /**
  * Express 앱을 만든다. DB 연결은 호출하는 쪽이 한다 (테스트에서는 임시 DB를 넘긴다).
  * 비밀키가 없으면 앱을 만들지 않는다 (SESSION_SECRET, USER_HASH_KEY 필수).
- * @param {{db: import('node:sqlite').DatabaseSync, auth: {hashKey: string, sessionSecret: string, sessionHours: number}}} deps
+ * @param {{db: import('@libsql/client').Client, auth: {hashKey: string, sessionSecret: string, sessionHours: number}}} deps
  */
 function createApp({ db, auth }) {
   if (!auth || !auth.hashKey) throw new Error('USER_HASH_KEY 환경 변수가 필요합니다');

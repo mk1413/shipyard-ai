@@ -10,7 +10,7 @@ const { hashEmployeeNo, hashName } = require('./hash');
  * 오류 메시지에는 사번과 이름 값을 넣지 않고 행 번호만 넣는다.
  * @returns {number} 저장한 사람 수
  */
-function seedUsers(db, csvPath, key) {
+async function seedUsers(db, csvPath, key) {
   const rows = parseCsv(fs.readFileSync(csvPath, 'utf8'));
   const seen = new Set();
   const prepared = rows.map((row, idx) => {
@@ -31,18 +31,14 @@ function seedUsers(db, csvPath, key) {
   });
 
   const now = new Date().toISOString();
-  db.exec('BEGIN');
-  try {
-    db.exec('DELETE FROM users;');
-    const stmt = db.prepare(
-      'INSERT INTO users (employee_hash, name_hash, created_at) VALUES (?, ?, ?)',
-    );
-    for (const p of prepared) stmt.run(p.employeeHash, p.nameHash, now);
-    db.exec('COMMIT');
-  } catch (err) {
-    db.exec('ROLLBACK');
-    throw err;
+  const stmts = [{ sql: 'DELETE FROM users;', args: [] }];
+  for (const p of prepared) {
+    stmts.push({
+      sql: 'INSERT INTO users (employee_hash, name_hash, created_at) VALUES (?, ?, ?)',
+      args: [p.employeeHash, p.nameHash, now],
+    });
   }
+  await db.batch(stmts, 'write');
   return prepared.length;
 }
 

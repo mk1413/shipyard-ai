@@ -22,7 +22,7 @@ function runOnce(dir) {
   return Object.fromEntries(FILES.map((f) => [f, hashOf(path.join(dir, 'data', f))]));
 }
 
-test('AC-14: generate_data.py를 두 번 실행하면 CSV 해시가 같다', () => {
+test('AC-14: generate_data.py를 두 번 실행하면 CSV 해시가 같다', async () => {
   const base = fs.mkdtempSync(path.join(os.tmpdir(), 'kpi-acc-gen-'));
   const first = runOnce(path.join(base, 'run1'));
   const second = runOnce(path.join(base, 'run2'));

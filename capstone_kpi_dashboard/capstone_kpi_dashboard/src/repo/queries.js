@@ -2,14 +2,12 @@
 
 const { TODAY, PROCESSES } = require('../config');
 const { blockStatus } = require('../domain/block-status');
+const { all, get } = require('../db/query');
 
 /** 필터 선택지의 범위(기간, 공정, 호선)를 DB에서 읽는다. */
-function bounds(db) {
-  const r = db.prepare('SELECT MIN(date) AS minDate, MAX(date) AS maxDate FROM daily_production').get();
-  const ships = db
-    .prepare('SELECT DISTINCT ship_no FROM blocks ORDER BY ship_no')
-    .all()
-    .map((x) => x.ship_no);
+async function bounds(db) {
+  const r = await get(db, 'SELECT MIN(date) AS minDate, MAX(date) AS maxDate FROM daily_production');
+  const ships = (await all(db, 'SELECT DISTINCT ship_no FROM blocks ORDER BY ship_no')).map((x) => x.ship_no);
   return { minDate: r.minDate, maxDate: r.maxDate, processes: PROCESSES, ships };
 }
 
@@ -45,48 +43,48 @@ function placeholders(list) {
 }
 
 /** 생산 데이터 (기간, 공정). 호선 필터는 적용하지 않는다. */
-function productionRows(db, f) {
+async function productionRows(db, f) {
   if (f.processes.length === 0) return [];
-  return db
-    .prepare(
-      `SELECT * FROM daily_production
-       WHERE date BETWEEN ? AND ? AND process IN (${placeholders(f.processes)})
-       ORDER BY date, process`,
-    )
-    .all(f.start, f.end, ...f.processes);
+  return all(
+    db,
+    `SELECT * FROM daily_production
+     WHERE date BETWEEN ? AND ? AND process IN (${placeholders(f.processes)})
+     ORDER BY date, process`,
+    [f.start, f.end, ...f.processes],
+  );
 }
 
 /** 설비 데이터 (기간, 공정). */
-function equipmentRows(db, f) {
+async function equipmentRows(db, f) {
   if (f.processes.length === 0) return [];
-  return db
-    .prepare(
-      `SELECT * FROM equipment
-       WHERE date BETWEEN ? AND ? AND process IN (${placeholders(f.processes)})
-       ORDER BY date, equipment_id`,
-    )
-    .all(f.start, f.end, ...f.processes);
+  return all(
+    db,
+    `SELECT * FROM equipment
+     WHERE date BETWEEN ? AND ? AND process IN (${placeholders(f.processes)})
+     ORDER BY date, equipment_id`,
+    [f.start, f.end, ...f.processes],
+  );
 }
 
 /**
  * 블록-공정 데이터 (호선, 공정). 기간 필터는 적용하지 않는다 (기간은 맨아워 계산에서만 쓴다).
  * 각 행에 상태와 지연일수를 붙여 돌려준다.
  */
-function blockRows(db, f) {
+async function blockRows(db, f) {
   if (f.processes.length === 0 || f.ships.length === 0) return [];
-  const rows = db
-    .prepare(
-      `SELECT * FROM blocks
-       WHERE ship_no IN (${placeholders(f.ships)}) AND process IN (${placeholders(f.processes)})
-       ORDER BY block_id, process`,
-    )
-    .all(...f.ships, ...f.processes);
+  const rows = await all(
+    db,
+    `SELECT * FROM blocks
+     WHERE ship_no IN (${placeholders(f.ships)}) AND process IN (${placeholders(f.processes)})
+     ORDER BY block_id, process`,
+    [...f.ships, ...f.processes],
+  );
   return rows.map((r) => ({ ...r, ...blockStatus(r, TODAY) }));
 }
 
 /** 지연 TOP N (FR-8): 지연일수가 0보다 큰 블록-공정을 지연일수 내림차순으로 n개까지. */
-function topDelayed(db, f, n) {
-  return blockRows(db, f)
+async function topDelayed(db, f, n) {
+  return (await blockRows(db, f))
     .filter((r) => r.delay_days > 0)
     .sort((a, b) => b.delay_days - a.delay_days || a.block_id.localeCompare(b.block_id))
     .slice(0, n);

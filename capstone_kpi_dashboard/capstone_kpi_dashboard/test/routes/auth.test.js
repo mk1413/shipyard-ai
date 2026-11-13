@@ -21,21 +21,21 @@ let db;
 
 before(async () => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kpi-auth-'));
-  db = openDatabase(path.join(dir, 'app.db'));
-  migrateUp(db, path.join(ROOT, 'src', 'db', 'migrations'));
+  db = await openDatabase(path.join(dir, 'app.db'));
+  await migrateUp(db, path.join(ROOT, 'src', 'db', 'migrations'));
   const csv = path.join(dir, 'users.csv');
   fs.writeFileSync(csv, '사번,이름\n1001,홍길동\n', 'utf8');
-  seedUsers(db, csv, HASH_KEY);
+  await seedUsers(db, csv, HASH_KEY);
   const app = createApp({ db, auth: { hashKey: HASH_KEY, sessionSecret: SECRET, sessionHours: 8 } });
   server = app.listen(0);
   await new Promise((r) => server.once('listening', r));
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
-after(() => {
+after(async () => {
   server.close();
   db.close();
-  fs.rmSync(dir, { recursive: true, force: true });
+  try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* Windows에서 libsql이 파일 핸들을 늦게 놓아 임시 폴더 삭제가 실패할 수 있다 */ }
 });
 
 async function login(employeeNo, name) {

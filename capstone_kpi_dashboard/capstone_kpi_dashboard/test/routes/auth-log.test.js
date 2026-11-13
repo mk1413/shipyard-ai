@@ -20,21 +20,21 @@ let db;
 
 before(async () => {
   dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kpi-authlog-'));
-  db = openDatabase(path.join(dir, 'app.db'));
-  migrateUp(db, path.join(ROOT, 'src', 'db', 'migrations'));
+  db = await openDatabase(path.join(dir, 'app.db'));
+  await migrateUp(db, path.join(ROOT, 'src', 'db', 'migrations'));
   const csv = path.join(dir, 'users.csv');
   fs.writeFileSync(csv, `사번,이름\n${EMP},${NAME}\n`, 'utf8');
-  seedUsers(db, csv, 'log-test-key');
+  await seedUsers(db, csv, 'log-test-key');
   const app = createApp({ db, auth: { hashKey: 'log-test-key', sessionSecret: 'log-test-secret', sessionHours: 8 } });
   server = app.listen(0);
   await new Promise((r) => server.once('listening', r));
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
-after(() => {
+after(async () => {
   server.close();
   db.close();
-  fs.rmSync(dir, { recursive: true, force: true });
+  try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* Windows에서 libsql이 파일 핸들을 늦게 놓아 임시 폴더 삭제가 실패할 수 있다 */ }
 });
 
 test('AC-21: 성공과 실패 로그인 중 로그와 응답 본문에 사번·이름 평문이 없다', async () => {
