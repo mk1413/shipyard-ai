@@ -18,7 +18,7 @@ const { openDatabase, configFromEnv } = require('./db/open');
 const { migrateUp, currentVersion } = require('./db/migrate');
 const { importAll } = require('./db/import-csv');
 const { get } = require('./db/query');
-const { createApp } = require('./app');
+const { createApp } = require('./create-app');
 
 const ROOT = path.join(__dirname, '..');
 const DATA_DIR = path.join(ROOT, 'data');

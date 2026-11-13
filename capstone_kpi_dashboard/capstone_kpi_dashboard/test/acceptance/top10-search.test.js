@@ -8,7 +8,7 @@ const fs = require('node:fs');
 const { openDatabase } = require('../../src/db/open');
 const { migrateUp } = require('../../src/db/migrate');
 const { importAll } = require('../../src/db/import-csv');
-const { createApp } = require('../../src/app');
+const { createApp } = require('../../src/create-app');
 const { signToken } = require('../../src/middleware/cookie');
 
 const ROOT = path.join(__dirname, '..', '..');
