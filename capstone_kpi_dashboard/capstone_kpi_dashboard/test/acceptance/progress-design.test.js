@@ -55,11 +55,20 @@ test('AC-29: 진척도 화면에 호선 4개, 공정 6개, 전체 평균 진척�
   assert.ok(html.includes(`${avg.toFixed(1)}%`), `전체 평균 ${avg.toFixed(1)}%가 있어야 함`);
 });
 
-test('AC-30: 주요 화면은 공통 스타일과 메뉴를 쓰고, 스타일 파일은 로그인 없이 열린다', async () => {
+test('AC-31: 첫 화면의 그래프는 호선별 막대와 공정별 막대를 SVG로 그리고, 목표 90% 선을 표시한다', async () => {
+  const { status, html } = await get('/progress');
+  assert.equal(status, 200);
+  assert.ok(html.includes('aria-label="호선별 전체 진척률 막대 그래프"'), '호선별 막대 그래프가 있어야 함');
+  assert.ok(html.includes('aria-label="호선별 공정 진척률 막대 그래프"'), '공정별 막대 그래프가 있어야 함');
+  assert.ok(html.includes('목표 90%'), '목표 선 표시가 있어야 함');
+  assert.equal((html.match(/class="col s\d"/g) || []).length, 24, '호선 4 × 공정 6 = 막대 24개');
+});
+
+test('AC-30: 주요 화면은 공통 스타일과 탭 메뉴를 쓰고, 스타일 파일은 로그인 없이 열린다', async () => {
   for (const p of ['/progress', '/search', '/failures']) {
     const { html } = await get(p);
     assert.ok(html.includes('href="/assets/app.css"'), `${p}는 공통 스타일을 불러와야 함`);
-    assert.ok(html.includes('href="/progress"') && html.includes('href="/search"') && html.includes('href="/failures"'), `${p}에 메뉴가 있어야 함`);
+    assert.ok(html.includes('href="/"') && html.includes('href="/search"') && html.includes('href="/failures"'), `${p}에 탭 메뉴가 있어야 함`);
   }
   const css = await get('/assets/app.css', false);
   assert.equal(css.status, 200);

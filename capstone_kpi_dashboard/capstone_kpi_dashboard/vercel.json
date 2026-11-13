@@ -4,9 +4,6 @@
       "includeFiles": "{src/**,views/**,data/**,public/**}"
     }
   },
-  "redirects": [
-    { "source": "/", "destination": "/progress", "permanent": false }
-  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/api" }
   ]

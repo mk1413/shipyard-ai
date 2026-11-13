@@ -3,17 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><%= title %> · 조선소 생산 KPI 대시보드</title>
+  <meta name="color-scheme" content="light dark">
+  <title><%= title %> · 조선소 생산 KPI</title>
   <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="/progress">🚢 조선소 생산 KPI</a>
-    <nav class="nav" aria-label="주 메뉴">
-      <a href="/progress"<%= active === 'progress' ? ' aria-current="page"' : '' %>>공정 진척도</a>
-      <a href="/search"<%= active === 'search' ? ' aria-current="page"' : '' %>>블록 목록·검색</a>
-      <a href="/failures"<%= active === 'failures' ? ' aria-current="page"' : '' %>>설비 고장</a>
+    <a class="brand" href="/"><span class="logo" aria-hidden="true">🚢</span> 조선소 생산 KPI</a>
+    <nav class="tabs" aria-label="화면 탭">
+      <a href="/"<%= active === 'progress' ? ' aria-current="page"' : '' %>>📊 공정 진척도</a>
+      <a href="/search"<%= active === 'search' ? ' aria-current="page"' : '' %>>🧱 블록 목록·검색</a>
+      <a href="/failures"<%= active === 'failures' ? ' aria-current="page"' : '' %>>🛠 설비 고장</a>
     </nav>
   </div>
 </header>
