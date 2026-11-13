@@ -1,7 +1,10 @@
 {
   "functions": {
-    "src/server.js": {
-      "includeFiles": "{views/**,data/**,src/db/migrations/**,public/**}"
+    "api/index.js": {
+      "includeFiles": "{src/**,views/**,data/**,public/**}"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api" }
+  ]
 }
