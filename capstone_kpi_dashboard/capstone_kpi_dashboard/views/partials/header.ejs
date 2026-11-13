@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
+  <meta name="color-scheme" content="dark light">
   <title><%= title %> · 조선소 생산 KPI</title>
   <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>
 <header class="topbar">
   <div class="topbar-inner">
-    <a class="brand" href="/"><span class="logo" aria-hidden="true">🚢</span> 조선소 생산 KPI</a>
+    <a class="brand" href="/"><span class="logo" aria-hidden="true">🚢</span><span>조선소 생산 KPI<small>Shipyard Control Room</small></span></a>
     <nav class="tabs" aria-label="화면 탭">
       <a href="/"<%= active === 'progress' ? ' aria-current="page"' : '' %>>📊 공정 진척도</a>
       <a href="/search"<%= active === 'search' ? ' aria-current="page"' : '' %>>🧱 블록 목록·검색</a>
