@@ -233,6 +233,7 @@
 | AC-28 | `/failures`에 설비 고장 이력과 설비별 요약이 보인다 (이력은 `data/equipment_failures.csv`, 가상 데이터) | `test/acceptance/ops-extras.test.js` |
 | AC-29 | `/progress`에 호선 4개 × 공정 6개 진척률 표와 전체 평균 진척률이 보인다 (평균은 blocks.csv 기준) | `test/acceptance/progress-design.test.js` |
 | AC-30 | 주요 화면은 공통 스타일(`/assets/app.css`)과 메뉴를 쓰고, 스타일 파일은 외부 주소 없이 로그인 없이 열린다 | `test/acceptance/progress-design.test.js` |
+| AC-31 | 첫 화면의 그래프는 호선별 막대와 공정별 막대를 SVG로 그리고, 목표 90% 선을 표시한다 (막대 24개 = 호선 4 × 공정 6) | `test/acceptance/progress-design.test.js` |
 
 ---
 
