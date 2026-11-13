@@ -308,6 +308,20 @@ td.cell.none { background: var(--none-soft); color: var(--muted); }
 }
 .empty { text-align: center; color: var(--fg-dim); padding: 32px; }
 
+/* 기준일 선택 */
+.asof { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 0.86rem; color: var(--fg-dim); }
+.asof label { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.asof input[type="date"] {
+  padding: 7px 10px; border-radius: 10px; border: 1px solid var(--panel-border); background: var(--panel);
+  color: var(--fg); font-family: var(--mono);
+}
+.asof input[type="date"]:focus { outline: none; border-color: var(--accent); box-shadow: var(--glow); }
+.asof button {
+  padding: 7px 14px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700;
+  background: linear-gradient(120deg, var(--accent), var(--accent-2)); color: #04111d;
+}
+.asof a { color: var(--accent); font-weight: 600; }
+
 /* 일별 추이 */
 .trend-line { stroke: var(--accent); stroke-width: 2.5; filter: drop-shadow(0 0 6px var(--accent)); stroke-linejoin: round; }
 .trend-dot { stroke: var(--panel-solid); stroke-width: 1.5; }

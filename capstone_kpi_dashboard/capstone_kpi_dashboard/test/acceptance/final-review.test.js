@@ -57,9 +57,9 @@ test('AC-32: 첫 화면에 생산 달성률, 불량률, OEE가 계산 함수 결
 });
 
 test('AC-33: 상태 필터 지연을 고르면 지연 블록-공정만 남는다', async () => {
-  const blocks = await loadBlocks(db);
+  const blocks = await loadBlocks(db, '2026-10-31');
   const delayed = blocks.filter((b) => b.delay_days > 0).length;
-  const { status, html } = await get('/search?status=delayed');
+  const { status, html } = await get('/search?status=delayed&asOf=2026-10-31');
   assert.equal(status, 200);
   assert.match(html, new RegExp(`필터 결과 <strong>${delayed}<\\/strong>건`));
   // 지연이 아닌 행은 없어야 한다: 지연 배지 수는 행 수와 같거나 적어야 함 (첫 페이지 50행 이내)
@@ -78,4 +78,33 @@ test('AC-34: 설비 고장 화면에 설비별 정지 시간 막대그래프가 
   const { status, html } = await get('/failures');
   assert.equal(status, 200);
   assert.ok(html.includes('aria-label="설비별 정지 시간 막대 그래프"'), '설비별 막대그래프가 있어야 함');
+});
+
+test('AC-35: 기본 기준일은 오늘(한국 시간)이고, 기준일을 고르면 상태 판정이 그 날짜로 바뀐다', async () => {
+  const { todayKst } = require('../../src/domain/as-of');
+  const today = todayKst();
+  const home = await get('/search');
+  assert.ok(home.html.includes(`value="${today}"`), '기본 기준일 칸에 오늘 날짜가 있어야 함');
+
+  for (const day of ['2026-09-15', '2026-10-31']) {
+    const expected = (await loadBlocks(db, day)).filter((b) => b.delay_days > 0).length;
+    const { html } = await get(`/search?status=delayed&asOf=${day}`);
+    assert.match(html, new RegExp(`필터 결과 <strong>${expected}<\\/strong>건`), `${day} 기준 지연 건수`);
+  }
+});
+
+test('AC-36: 블록 목록에 계획 MH, 실적 MH, MH 효율이 보이고, 첫 화면에 호선별 맨아워 효율이 있다', async () => {
+  const first = (await loadBlocks(db, '2026-10-31'))[0];
+  const eff = (Number(first.planned_mh) / Number(first.actual_mh)) * 100;
+  const { html } = await get('/search?asOf=2026-10-31');
+  assert.ok(html.includes(Number(first.planned_mh).toFixed(1)), '블록 계획 MH가 있어야 함');
+  assert.ok(html.includes(Number(first.actual_mh).toFixed(1)), '블록 실적 MH가 있어야 함');
+  assert.ok(html.includes(`${eff.toFixed(1)}%`), '블록 MH 효율이 있어야 함');
+
+  const ship = (await all(db, "SELECT * FROM blocks WHERE ship_no = '2401' AND actual_mh > 0"));
+  const plannedSum = ship.reduce((s, r) => s + Number(r.planned_mh), 0);
+  const actualSum = ship.reduce((s, r) => s + Number(r.actual_mh), 0);
+  const home = await get('/progress');
+  assert.ok(home.html.includes(`${((plannedSum / actualSum) * 100).toFixed(1)}%`), '2401호선 맨아워 효율이 있어야 함');
+  assert.ok(home.html.includes('호선별 맨아워 효율'), '호선별 맨아워 표 제목이 있어야 함');
 });

@@ -4,13 +4,18 @@
   const doneRate = summary.total ? (summary.done / summary.total) * 100 : null;
   const mhLevel = summary.mhEff == null ? 'na' : (summary.mhEff >= 95 ? 'ok' : (summary.mhEff >= 92 ? 'warn' : 'crit'));
   const tone = (lv) => (lv === 'ok' ? 'good' : (lv === 'warn' ? 'warn' : (lv === 'crit' ? 'crit' : '')));
+  const mhTone = (v) => (v == null ? 'none' : (v >= 95 ? 'good' : (v >= 92 ? 'warn' : 'crit')));
 %>
 <div class="page-head">
   <div>
     <h1>공정 진척도</h1>
     <p class="lead">호선별, 공정별 블록 진척 현황과 핵심 생산 지표를 한 화면에서 봅니다.</p>
   </div>
-  <span class="stamp">기준일 2026-10-31 · 가상 데이터</span>
+  <form class="asof" method="get" action="/" aria-label="기준일 선택">
+    <label>기준일 <input type="date" name="asOf" value="<%= asOf %>"></label>
+    <button type="submit">적용</button>
+    <% if (asOfCustom) { %><a class="asof-reset" href="/">오늘로</a><% } %>
+  </form>
 </div>
 
 <section class="kpi-grid" aria-label="핵심 지표">
@@ -79,6 +84,35 @@
   <p class="hint">날짜별 실적 ÷ 계획 (전 공정 합계). 점선은 목표 95%입니다. 빨간 점은 목표 미달인 날입니다.</p>
   <%- trendHtml %>
 </section>
+
+<h2>호선별 맨아워 효율</h2>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>호선</th><th>선종</th><th class="num">계획 MH</th><th class="num">실적 MH</th><th class="num">효율 (계획 ÷ 실적)</th><th class="num">블록 수</th></tr>
+    </thead>
+    <tbody>
+      <% summary.ships.forEach(function (s) { %>
+        <tr>
+          <td><strong><%= s.ship_no %></strong></td>
+          <td><%= s.ship_type %></td>
+          <td class="num"><%= Number(s.plannedMh).toFixed(1) %></td>
+          <td class="num"><%= Number(s.actualMh).toFixed(1) %></td>
+          <td class="cell <%= mhTone(s.mhEff) %>"><%= fmt(s.mhEff) %></td>
+          <td class="num"><%= s.count %></td>
+        </tr>
+      <% }) %>
+      <tr>
+        <td><strong>전체</strong></td><td>-</td>
+        <td class="num"><%= Number(summary.plannedMh).toFixed(1) %></td>
+        <td class="num"><%= Number(summary.actualMh).toFixed(1) %></td>
+        <td class="cell <%= mhTone(summary.mhEff) %>"><%= fmt(summary.mhEff) %></td>
+        <td class="num"><%= summary.total %></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<p class="note">맨아워 효율 = Σ계획 MH ÷ Σ실적 MH × 100 (블록별 계획·실적 MH 합, 실적 MH가 있는 블록만). 블록별 값은 블록 목록 화면에서 볼 수 있습니다.</p>
 
 <h2>바로가기</h2>
 <section class="tiles">

@@ -21,12 +21,21 @@ function avg(values) {
  * 진척률은 행별 progress_pct의 단순 평균이다 (차트와 같은 기준).
  * 맨아워 효율 = 계획 MH 합 ÷ 실적 MH 합 × 100 (실적이 있는 행만).
  */
+/**
+ * 맨아워 집계 (명세 정의): 효율 = Σ계획 MH ÷ Σ실적 MH × 100. 실적 MH가 있는 행만 센다.
+ * @returns {{planned: number, actual: number, eff: number|null}}
+ */
+function mhOf(rows) {
+  const withActual = rows.filter((r) => Number(r.actual_mh) > 0);
+  const planned = withActual.reduce((s, r) => s + Number(r.planned_mh), 0);
+  const actual = withActual.reduce((s, r) => s + Number(r.actual_mh), 0);
+  return { planned, actual, eff: actual > 0 ? (planned / actual) * 100 : null };
+}
+
 function progressSummary(rows) {
   const done = rows.filter((r) => r.status.startsWith('완료')).length;
   const delayed = rows.filter((r) => r.delay_days > 0).length;
-  const withMh = rows.filter((r) => Number(r.actual_mh) > 0);
-  const plannedMh = withMh.reduce((s, r) => s + Number(r.planned_mh), 0);
-  const actualMh = withMh.reduce((s, r) => s + Number(r.actual_mh), 0);
+  const allMh = mhOf(rows);
 
   const shipMap = new Map();
   for (const r of rows) {
@@ -45,6 +54,7 @@ function progressSummary(rows) {
         cells[p] = { avg: a, count: cell.length, level: level(a) };
       }
       const overall = avg(pcts);
+      const mh = mhOf(s.rows);
       return {
         ship_no: s.ship_no,
         ship_type: s.ship_type,
@@ -53,6 +63,9 @@ function progressSummary(rows) {
         count: s.rows.length,
         done: s.rows.filter((r) => r.status.startsWith('완료')).length,
         delayed: s.rows.filter((r) => r.delay_days > 0).length,
+        plannedMh: mh.planned,
+        actualMh: mh.actual,
+        mhEff: mh.eff,
         cells,
       };
     });
@@ -63,7 +76,9 @@ function progressSummary(rows) {
     total: rows.length,
     done,
     delayed,
-    mhEff: actualMh > 0 ? (plannedMh / actualMh) * 100 : null,
+    plannedMh: allMh.planned,
+    actualMh: allMh.actual,
+    mhEff: allMh.eff,
     ships,
     processes: PROCESSES,
   };

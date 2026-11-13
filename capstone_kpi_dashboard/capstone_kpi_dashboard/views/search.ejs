@@ -5,6 +5,7 @@
 <form class="search-form" method="get" action="/search" role="search">
   <input type="hidden" name="status" value="<%= filters.status %>">
   <input type="hidden" name="ship" value="<%= filters.ship %>">
+  <input type="hidden" name="asOf" value="<%= asOfCustom ? asOf : '' %>">
   <input name="q" value="<%= q %>" placeholder="예: 대조립, 2401, 운반선, 2401-B01" aria-label="블록 검색">
   <button type="submit">검색</button>
 </form>
@@ -21,6 +22,16 @@
     <a class="chip<%= filters.ship === s ? ' on' : '' %>" href="<%= links.ship[s] %>"><%= s === 'all' ? '전체' : s + '호선' %></a>
   <% }) %>
 </div>
+
+<form class="asof" method="get" action="/search" aria-label="기준일 선택">
+  <input type="hidden" name="q" value="<%= q %>">
+  <input type="hidden" name="status" value="<%= filters.status %>">
+  <input type="hidden" name="ship" value="<%= filters.ship %>">
+  <label>기준일 <input type="date" name="asOf" value="<%= asOf %>"></label>
+  <button type="submit">적용</button>
+  <% if (asOfCustom) { %><a class="asof-reset" href="/search?q=<%= encodeURIComponent(q) %>&status=<%= filters.status %>&ship=<%= filters.ship %>">오늘로</a><% } %>
+  <span class="muted">상태(지연·진행·완료·대기)는 이 기준일로 판정합니다.</span>
+</form>
 
 <% if (mode === 'list') { %>
   <p class="muted">
@@ -44,7 +55,7 @@
       <tr>
         <th>블록</th><th>호선</th><th>선종</th><th>공정</th>
         <th>계획 착수</th><th>계획 종료</th><th>실제 착수</th><th>실제 종료</th>
-        <th class="num">진척률</th><th>상태</th><th class="num">지연일수</th><th>지연 사유</th>
+        <th class="num">진척률</th><th class="num">계획 MH</th><th class="num">실적 MH</th><th class="num">MH 효율</th><th>상태</th><th class="num">지연일수</th><th>지연 사유</th>
       </tr>
     </thead>
     <tbody>
@@ -55,6 +66,9 @@
           <td><%= r.planned_start %></td><td><%= r.planned_end %></td>
           <td><%= r.actual_start || '-' %></td><td><%= r.actual_end || '-' %></td>
           <td class="num"><%= Number(r.progress_pct).toFixed(1) %>%</td>
+          <td class="num"><%= Number(r.planned_mh).toFixed(1) %></td>
+          <td class="num"><%= Number(r.actual_mh) > 0 ? Number(r.actual_mh).toFixed(1) : '-' %></td>
+          <td class="num"><%= Number(r.actual_mh) > 0 ? (Number(r.planned_mh) / Number(r.actual_mh) * 100).toFixed(1) + '%' : '-' %></td>
           <td><span class="badge <%= r.status.indexOf('지연') >= 0 ? 'crit' : (r.status.indexOf('완료') === 0 ? 'good' : 'warn') %>"><%= r.status %></span></td>
           <td class="num <%= r.delay_days > 0 ? 'delay' : '' %>"><%= r.delay_days %></td>
           <td><%= r.delay_reason || '-' %></td>

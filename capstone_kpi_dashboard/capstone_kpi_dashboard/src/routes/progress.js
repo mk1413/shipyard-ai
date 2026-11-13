@@ -4,6 +4,7 @@ const express = require('express');
 const { all, get } = require('../db/query');
 const { allBlocksWithStatus } = require('../repo/blocks');
 const { progressSummary } = require('../domain/progress');
+const { parseAsOf } = require('../domain/as-of');
 const { achieve, defectRate, oeeCalc } = require('../domain/kpi');
 const { kpiStatus } = require('../domain/alerts');
 const { shipBarsSvg, processColumnsSvg, trendSvg } = require('../charts/progress-svg');
@@ -30,7 +31,8 @@ function progressRouter(db) {
   const router = express.Router();
 
   async function render(req, res) {
-    const rows = await allBlocksWithStatus(db);
+    const { asOf, custom } = parseAsOf(req.query.asOf);
+    const rows = await allBlocksWithStatus(db, asOf);
     const summary = progressSummary(rows);
 
     const production = await all(db, 'SELECT * FROM daily_production ORDER BY date, process');
@@ -50,6 +52,8 @@ function progressRouter(db) {
     const worst = scored.length ? scored.reduce((a, b) => (b.avg < a.avg ? b : a)) : null;
 
     res.render('progress', {
+      asOf,
+      asOfCustom: custom,
       summary,
       worst,
       ach: { value: ach, level: kpiStatus('achieve', ach) },

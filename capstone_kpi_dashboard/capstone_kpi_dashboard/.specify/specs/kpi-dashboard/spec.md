@@ -237,6 +237,8 @@
 | AC-32 | 첫 화면에 생산 달성률, 불량률, OEE가 계산 함수(`src/domain/kpi.js`) 결과와 같은 값으로 나오고, 일별 달성률 추이 그래프가 있다 | `test/acceptance/final-review.test.js` |
 | AC-33 | 블록 목록은 상태(지연, 진행, 완료, 대기)와 호선으로 필터링되고, 알 수 없는 필터 값은 전체로 처리한다 | `test/acceptance/final-review.test.js` |
 | AC-34 | 설비 고장 화면에 설비별 정지 시간 막대그래프가 있다 | `test/acceptance/final-review.test.js` |
+| AC-35 | 블록 상태 판정의 기준일은 기본적으로 오늘(한국 시간)이고, 화면에서 날짜를 고르면 그 날짜 기준으로 다시 판정한다 | `test/acceptance/final-review.test.js` |
+| AC-36 | 블록 목록에 블록별 계획 MH, 실적 MH, MH 효율이 있고, 첫 화면에 호선별 맨아워 효율(Σ계획 MH ÷ Σ실적 MH) 표가 있다 | `test/acceptance/final-review.test.js` |
 
 ---
 
