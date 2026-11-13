@@ -1,2 +1,5 @@
 summary.xlsx
 ~$*.xlsx
+
+# 강의 자료 (푸시 제외)
+qna-board/
