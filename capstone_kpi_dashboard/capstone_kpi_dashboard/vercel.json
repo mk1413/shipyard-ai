@@ -4,6 +4,9 @@
       "includeFiles": "{src/**,views/**,data/**,public/**}"
     }
   },
+  "redirects": [
+    { "source": "/", "destination": "/search", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/api" }
   ]
